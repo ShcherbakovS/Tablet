@@ -1,0 +1,29 @@
+version: "3.9"
+
+volumes:
+  pg_tablet:
+
+services:
+  tablet_db:
+    image: postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=tablet
+    volumes:
+      - pg_tablet:/var/lib/docker/volumes/tablet/_data
+
+    ports:
+      - "127.0.0.1:5432:5432"
+
+  app:
+    restart: always
+    build: .
+    ports:
+      - "8443:8443"
+    depends_on:
+      - tablet_db
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://tablet_db:5432/tablet"
+      JAVA_OPTS: "-Xmx512m"

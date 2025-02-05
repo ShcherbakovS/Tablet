@@ -1,25 +1,22 @@
 package com.cpstablet.tablet.entity;
 
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
-@Entity
-@Data
+import jakarta.persistence.*;
+import lombok.*;
+
+
 @Builder
+@Entity
 @AllArgsConstructor
 @NoArgsConstructor
-//@Table(name = "USER")
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long userId;
-    private String name;
-//    private String lastname;
-//    private String surname;
-//    private String userInfo;
-//    @ManyToOne
-//    private ObjectCS objectCS;
+
+    private String userInfo;
+    private String phoneNumber;
+    private String email;
+    private Long organisationId;
+
 }

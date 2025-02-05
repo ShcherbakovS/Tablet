@@ -5,18 +5,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class UserDTO {
+public class PhotoDTO {
 
-    private String userInfo;
-    private String phoneNumber;
-    private String email;
-    private Long organisationId;
-
-
-
+    private String fileName;
+    private String contentType;
+    private Long size;
+    private byte[] bytes;
+    private Long commentId;
 }

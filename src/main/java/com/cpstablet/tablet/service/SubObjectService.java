@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @AllArgsConstructor
-public class SubobjectService {
+public class SubObjectService {
 
 
 }

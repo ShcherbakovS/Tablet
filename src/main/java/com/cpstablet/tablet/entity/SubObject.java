@@ -14,11 +14,19 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Subobject {
+public class SubObject {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long subobjectId;
-    private String subobjectName;
+    private Long subObjectId;
+
+    private String subObjectName;
+
+    private String numberKO;
+
+    private String status;
+
+    private String CCSCode;
+
 
 }

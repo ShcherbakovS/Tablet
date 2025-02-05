@@ -9,8 +9,8 @@ import org.springframework.stereotype.Repository;
 public interface UserRepo extends JpaRepository<User,Long> {
 
     @Transactional
-    public User findByUserId(Long id);
+     User findByUserId(Long id);
 
-    public void deleteById(Long id);
+     void deleteById(Long id);
 
 }

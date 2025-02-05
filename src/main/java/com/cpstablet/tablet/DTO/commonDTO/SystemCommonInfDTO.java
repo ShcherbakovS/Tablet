@@ -1,32 +1,24 @@
-package com.cpstablet.tablet.entity;
+package com.cpstablet.tablet.DTO.commonDTO;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.List;
 
-@Entity
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class PNRSystem {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+public class SystemCommonInfDTO {
     private Long PNRSystemId;
-    private String PNRSystemName;
-    private String PNRSystemRD;
-    private String PNRSystemII;
-    private String PNRSystemKO;
     private String CCSNumber;
-    private String PNRSystemStatus;
+    private String numberII;
+    private String systemName;
+    private Long comments;
+    private String status;
     private LocalDate PNRPlanDate;
     private LocalDate PNRFactDate;
     private LocalDate IIPlanDate;
@@ -35,7 +27,6 @@ public class PNRSystem {
     private LocalDate KOFactDate;
     private String CIWExecutor;
     private String CWExecutor;
-
-
+    private List<String> statusList;
 
 }

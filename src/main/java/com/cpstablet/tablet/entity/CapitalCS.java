@@ -14,22 +14,21 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ObjectCS {
+public class CapitalCS {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long objectKSId;
-    private String objectKSName;
-    private String codeOKS;
+    @Column(name = "capitalcs_id")
+    private Long capitalCSId;
+    private String capitalCSName;
+
+    @Column(name = "code_ccs")
+    private String codeCCS;
+
     private String locationRegion;
     private String objectType;
     private String customer;
     private String executorOfPNR;
-
-
-    // TODO: настроить связь, проверить
-    @OneToMany(fetch = FetchType.LAZY)
-    List<Comment> comments;
 
 
 }
