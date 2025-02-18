@@ -19,7 +19,6 @@ public class Photo {
     private String fileName;
     private String contentType;
     private Long size;
-//    @Column(columnDefinition = "LONGBLOB")
     private byte[] bytes;
     private Long commentId;
 

@@ -11,6 +11,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,29 +22,25 @@ import java.util.List;
 @RequestMapping("/systems")
 @AllArgsConstructor
 public class SystemController {
-    private final SystemRepo systemRepo;
+
+    @Qualifier("myMapper")
+    private final ObjectMapper myMapper;
 
     private final SystemService systemService;
 
     @GetMapping("/getSystems/{codeCCS}")
     public ResponseEntity<List<PNRSystem>> getSystems(@PathVariable("codeCCS") String codeCCS) {
 
-        // TODO: не корректо отдать через Сервичный класс
-        return new ResponseEntity<>(systemRepo.getAllByCCSNumber(codeCCS), HttpStatus.OK);
+        return new ResponseEntity<>(systemService.getSystems(codeCCS), HttpStatus.OK);
     }
-
     @PutMapping("/updateSystemInfo/{id}")
     public HttpStatus updatePNRSystemInfo(@RequestBody String JsonString, @PathVariable("id") Long id) {
 
         try {
-            return systemService.updateSystemInfo(new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL).
-                    enable(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT).readValue(JsonString, PNRSystemDTO.class), id);
+            return systemService.updateSystemInfo(myMapper.readValue(JsonString, PNRSystemDTO.class), id);
         } catch (
                 JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-
     }
-
-
 }

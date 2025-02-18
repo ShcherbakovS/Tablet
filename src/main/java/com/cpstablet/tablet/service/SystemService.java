@@ -23,7 +23,7 @@ public class SystemService {
 
     public List<PNRSystem> getSystems (String codeCCS) {
 
-        return null;
+        return systemRepo.getAllByCCSNumber(codeCCS);
     }
 
     public HttpStatus updateSystemInfo(PNRSystemDTO systemDTO, Long id) {
@@ -50,7 +50,7 @@ public class SystemService {
             toUpdate.setKOPlanDate(parsStringToDate(systemDTO.getKOPlanDate()));
         }
         if(systemDTO.getKOFactDate() != null) {
-            toUpdate.setKOPlanDate(parsStringToDate(systemDTO.getKOFactDate()));
+            toUpdate.setKOFactDate(parsStringToDate(systemDTO.getKOFactDate()));
         }
         systemRepo.save(toUpdate);
 

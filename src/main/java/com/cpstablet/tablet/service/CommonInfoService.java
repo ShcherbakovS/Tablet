@@ -1,8 +1,8 @@
 package com.cpstablet.tablet.service;
 
-import com.cpstablet.tablet.DTO.commonDTO.ObjectCommonInfoDTO;
-import com.cpstablet.tablet.DTO.commonDTO.SubobjectCommonInfDTO;
-import com.cpstablet.tablet.DTO.commonDTO.SystemCommonInfDTO;
+import com.cpstablet.tablet.DTO.commonInfoDTO.ObjectCommonInfoDTO;
+import com.cpstablet.tablet.DTO.commonInfoDTO.SubobjectCommonInfDTO;
+import com.cpstablet.tablet.DTO.commonInfoDTO.SystemCommonInfDTO;
 import com.cpstablet.tablet.entity.Comment;
 import com.cpstablet.tablet.entity.PNRSystem;
 import com.cpstablet.tablet.entity.SubObject;
@@ -12,8 +12,12 @@ import com.cpstablet.tablet.repository.SystemRepo;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static java.time.format.DateTimeFormatter.ofPattern;
 
 @Service
 @AllArgsConstructor
@@ -22,6 +26,8 @@ public class CommonInfoService {
     private final SubObjectRepo subObjectRepo;
     private final SystemRepo systemRepo;
     private final CommentRepo commentRepo;
+
+    static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
 
     public ObjectCommonInfoDTO getObjectCommonInfo(String CCSNumber)  {
@@ -67,7 +73,6 @@ public class CommonInfoService {
     }
     public List<SubobjectCommonInfDTO> structureCommonInf(String CCSCode) {
 
-        System.out.println(subObjectRepo.findByCCSCode(CCSCode));
 
         return subObjectRepo.findByCCSCode(CCSCode).stream().map(e-> getSubObjectCommonInfDTO(e)).collect(Collectors.toList());
 
@@ -100,7 +105,7 @@ public class CommonInfoService {
         PNRSystem PNRSystem = systemRepo.findByPNRSystemId(id);
 
 
-        SystemCommonInfDTO sciDTO = SystemCommonInfDTO.builder().
+        return SystemCommonInfDTO.builder().
                 PNRSystemId(PNRSystem.getPNRSystemId()).
                 CCSNumber(PNRSystem.getCCSNumber()).
                 numberII(PNRSystem.getPNRSystemII()).
@@ -109,18 +114,15 @@ public class CommonInfoService {
                         stream().
                         filter(e-> e.getIiNumber() == Long.valueOf(PNRSystem.getPNRSystemII())).count()).
                 status(PNRSystem.getPNRSystemStatus()).
-                PNRPlanDate(PNRSystem.getPNRPlanDate()).
-                PNRFactDate(PNRSystem.getPNRFactDate()).
-                IIPlanDate(PNRSystem.getIIPlanDate()).
-                IIFactDate(PNRSystem.getIIFactDate()).
-                KOPlanDate(PNRSystem.getKOPlanDate()).
-                KOFactDate(PNRSystem.getKOFactDate()).
+                PNRPlanDate(LocalDate.parse(PNRSystem.getPNRPlanDate().format(formatter))).
+                PNRFactDate(LocalDate.parse(PNRSystem.getPNRFactDate().format(formatter))).
+                IIPlanDate(LocalDate.parse(PNRSystem.getIIPlanDate().format(formatter))).
+                IIFactDate(LocalDate.parse(PNRSystem.getIIFactDate().format(formatter))).
+                KOPlanDate(LocalDate.parse(PNRSystem.getKOPlanDate().format(formatter))).
+                KOFactDate(LocalDate.parse(PNRSystem.getKOFactDate().format(formatter))).
                 CIWExecutor(PNRSystem.getCIWExecutor()).
                 CWExecutor(PNRSystem.getCWExecutor()).
                 build();
-        return sciDTO;
-
 
     }
-
 }

@@ -1,10 +1,9 @@
 package com.cpstablet.tablet.controller;
 
 
-import com.cpstablet.tablet.DTO.PNRSystemDTO;
-import com.cpstablet.tablet.DTO.commonDTO.ObjectCommonInfoDTO;
-import com.cpstablet.tablet.DTO.commonDTO.SubobjectCommonInfDTO;
-import com.cpstablet.tablet.DTO.commonDTO.SystemCommonInfDTO;
+import com.cpstablet.tablet.DTO.commonInfoDTO.ObjectCommonInfoDTO;
+import com.cpstablet.tablet.DTO.commonInfoDTO.SubobjectCommonInfDTO;
+import com.cpstablet.tablet.DTO.commonInfoDTO.SystemCommonInfDTO;
 import com.cpstablet.tablet.service.CommonInfoService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;

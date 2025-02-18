@@ -23,10 +23,14 @@ public class FileController {
         System.out.println(nameCSS);
             try {
                 fileService.downloadStructure(multipartFile, nameCSS);
-            } catch(IOException e) {
+            } catch(RuntimeException e) {
+                e.printStackTrace();
+                return HttpStatus.BAD_REQUEST;
+            } catch (IOException e) {
+                e.printStackTrace();
                 return HttpStatus.BAD_REQUEST;
             }
-            return HttpStatus.OK;
+        return HttpStatus.OK;
     }
 
     @PostMapping("/uploadPhotos/{commentId}")

@@ -10,17 +10,19 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
 public class CommentService {
 
-    static final String DATA_FORMAT = "dd.MM.yyyy";
+    static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
     private final CommentRepo commentRepo;
+
     public Comment create(CommentDTO comDTO) {
 
-        LocalDate startDate = LocalDate.parse(comDTO.getStartDate(), DateTimeFormatter.ofPattern(DATA_FORMAT));
+        LocalDate startDate = LocalDate.parse(comDTO.getStartDate(), formatter);
 
         return commentRepo.save(Comment.builder().
                 serialNumber(commentRepo.count() + 1).
@@ -39,30 +41,56 @@ public class CommentService {
                 build());
 
     }
-    public List<Comment> getAllComments() {
-        return commentRepo.findAll();
+    public List<CommentDTO> getAllComments() {
+
+            return commentRepo.findAll().stream().map(comment-> CommentDTO.builder().
+                commentCategory(comment.getCommentCategory()).
+                commentExplanation(comment.getCommentExplanation()).
+                commentStatus(comment.getCommentStatus()).
+                description(comment.getDescription()).
+                endDateFact(comment.getEndDateFact().format(formatter)).
+                endDatePlan(comment.getEndDateFact().format(formatter)).
+                startDate(comment.getStartDate().format(formatter)).
+                serialNumber(comment.getSerialNumber()).
+                subObject(comment.getSubObject()).
+                systemName(comment.getSystemName()).
+                iiNumber(comment.getIiNumber()).
+                build()).collect(Collectors.toList());
     }
-//TODO: внесение изменений в существующее замечание проверить
 
     public HttpStatus update(CommentDTO comDTO, Long id) {
-       Comment toUpdate = commentRepo.findCommentByCommentId(id);
 
-       LocalDate endDateFact = LocalDate.parse(comDTO.getEndDateFact(), DateTimeFormatter.ofPattern(DATA_FORMAT));
+        Comment toUpdate = commentRepo.findCommentByCommentId(id);
 
         toUpdate.setDescription(comDTO.getDescription());
-        toUpdate.setCommentStatus(comDTO.getCommentStatus());
-        toUpdate.setEndDateFact(endDateFact);
-        toUpdate.setCommentCategory(comDTO.getCommentCategory());
 
-         if (endDateFact.isAfter(toUpdate.getEndDatePlan())) {
-             toUpdate.setCommentStatus("Устранено с просрочкой");
-        }
-
+        if(comDTO.getEndDateFact() != null) {
+            toUpdate.setEndDateFact(LocalDate.parse(comDTO.getEndDateFact(), formatter));
+            if (LocalDate.parse(comDTO.getEndDateFact(),formatter).isAfter(toUpdate.getEndDatePlan())) {
+                toUpdate.setCommentStatus("Устранено с просрочкой");
+            } else {
+                toUpdate.setCommentStatus("Устранено");
+            }
+         }
         commentRepo.save(toUpdate);
         return HttpStatus.OK;
     }
-    public Comment findCommentByCommentId(Long id) {
-        return commentRepo.findCommentByCommentId(id);
+    public CommentDTO findCommentByCommentId(Long id) {
+        Comment comment = commentRepo.findCommentByCommentId(id);
+
+        return CommentDTO.builder().codeCCS(comment.getCodeCCS()).
+                commentCategory(comment.getCommentCategory()).
+                commentExplanation(comment.getCommentExplanation()).
+                commentStatus(comment.getCommentStatus()).
+                description(comment.getDescription()).
+                endDateFact(comment.getEndDateFact().format(formatter)).
+                endDatePlan(comment.getEndDateFact().format(formatter)).
+                startDate(comment.getStartDate().format(formatter)).
+                serialNumber(comment.getSerialNumber()).
+                subObject(comment.getSubObject()).
+                systemName(comment.getSystemName()).
+                iiNumber(comment.getIiNumber()).
+                build();
     }
     public HttpStatus deleteCommentById(Long id) {
 
@@ -72,23 +100,4 @@ public class CommentService {
         }
         return HttpStatus.NOT_FOUND;
     }
-
-
-    // метод пересчета порядковых номеров
-//    private void replaceSerialNumbers() {
-//
-//        long counter = 1;
-//
-//        for ( var comment : commentRepo.findAll() ) {
-//            comment.setSerialNumber(counter);
-//            commentRepo.save(comment);
-//            counter++;
-//        }
-//
-//
-//
-//
-//    }
-
-
 }

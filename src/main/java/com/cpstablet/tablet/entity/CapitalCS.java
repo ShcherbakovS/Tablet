@@ -21,10 +21,8 @@ public class CapitalCS {
     @Column(name = "capitalcs_id")
     private Long capitalCSId;
     private String capitalCSName;
-
     @Column(name = "code_ccs")
     private String codeCCS;
-
     private String locationRegion;
     private String objectType;
     private String customer;

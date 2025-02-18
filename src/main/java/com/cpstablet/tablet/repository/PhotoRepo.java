@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface PhotosRepo extends JpaRepository<Photo, Long> {
+public interface PhotoRepo extends JpaRepository<Photo, Long> {
 
      Photo getPhotoByCommentId(Long id);
      void deleteById(Long id);

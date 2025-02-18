@@ -36,6 +36,4 @@ public class PNRSystem {
     private String CIWExecutor;
     private String CWExecutor;
 
-
-
 }

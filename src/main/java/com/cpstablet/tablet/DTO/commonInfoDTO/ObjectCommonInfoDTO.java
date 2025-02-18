@@ -1,4 +1,4 @@
-package com.cpstablet.tablet.DTO.commonDTO;
+package com.cpstablet.tablet.DTO.commonInfoDTO;
 
 
 import lombok.AllArgsConstructor;

@@ -3,7 +3,7 @@ package com.cpstablet.tablet.service;
 import com.cpstablet.tablet.entity.PNRSystem;
 import com.cpstablet.tablet.entity.Photo;
 import com.cpstablet.tablet.entity.SubObject;
-import com.cpstablet.tablet.repository.PhotosRepo;
+import com.cpstablet.tablet.repository.PhotoRepo;
 import com.cpstablet.tablet.repository.SubObjectRepo;
 import com.cpstablet.tablet.repository.SystemRepo;
 import lombok.AllArgsConstructor;
@@ -21,8 +21,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
-import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -30,7 +31,7 @@ public class FileService {
 
     private final SubObjectRepo subObjectRepo;
     private final SystemRepo systemRepo;
-    private final PhotosRepo photosRepo;
+    private final PhotoRepo photoRepo;
 
 // загрузка структуры ОКС (подобъекты, системы)
     public void downloadStructure(MultipartFile file, String CCSCode) throws IOException {
@@ -51,31 +52,42 @@ public class FileService {
 
         Sheet sheet = workbook.getSheetAt(0);
 
+        if(systemRepo.getAllByCCSNumber(CCSCode).isEmpty()) {
 
-        for (int i = 10; i <= sheet.getLastRowNum(); i++) {
+            for (int i = 10; i <= sheet.getLastRowNum(); i++) {
 
-            subObjectCreate(sheet.getRow(i), CCSCode);
-        }
+                subObjectCreate(sheet.getRow(i), CCSCode);
+            }
 
-        for (int i = 10; i <= sheet.getLastRowNum(); i++) {
+            for (int i = 10; i <= sheet.getLastRowNum(); i++) {
 
-            systemCreate(sheet.getRow(i), CCSCode);
+                systemCreate(sheet.getRow(i), CCSCode);
+            }
+        } else{
+
+            throw  new RuntimeException();
         }
     }
     private void subObjectCreate(Row row, String CCSCode) {
+
+        List<String> checkKONumber = subObjectRepo.findByCCSCode(CCSCode).stream().map(SubObject::getNumberKO).collect(Collectors.toList());
+
         DataFormatter df = new DataFormatter();
 
+        if(!checkKONumber.contains(df.formatCellValue(row.getCell(5)))) {
             subObjectRepo.save(SubObject.builder().
                     subObjectName(df.formatCellValue(row.getCell(1))).
                     numberKO(df.formatCellValue(row.getCell(5))).
                     CCSCode(CCSCode).
                     build());
+        }
+
 
     }
     public void systemCreate(Row row, String CCSCode) {
 
-
         DataFormatter df = new DataFormatter();
+
         systemRepo.save(PNRSystem.builder().
                 PNRSystemName(df.formatCellValue(row.getCell(2))).
                 PNRSystemRD(df.formatCellValue(row.getCell(3))).
@@ -95,7 +107,7 @@ public class FileService {
     }
     public void uploadPhotos(MultipartFile file, Long id) throws IOException {
         System.out.println(file.getContentType() + "\n " + file.getOriginalFilename() + "\n " + file.getSize() );
-        photosRepo.save(Photo.builder().
+        photoRepo.save(Photo.builder().
                 fileName(file.getName()).
                 contentType(file.getContentType()).
                 size(file.getSize()).
@@ -106,7 +118,7 @@ public class FileService {
 
     public ResponseEntity getPhotosByCommentId(Long id) {
 
-        Photo photo = photosRepo.getPhotoByCommentId(id);
+        Photo photo = photoRepo.getPhotoByCommentId(id);
 
         return  ResponseEntity.ok().
                 header("fileName").contentType(MediaType.valueOf(photo.getContentType())).
@@ -119,8 +131,8 @@ public class FileService {
 
     public HttpStatus deletePhoto(Long id) {
 
-        if (photosRepo.findById(id).isPresent()) {
-            photosRepo.deleteById(id);
+        if (photoRepo.findById(id).isPresent()) {
+            photoRepo.deleteById(id);
 
             return HttpStatus.OK;
         }

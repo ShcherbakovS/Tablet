@@ -5,6 +5,7 @@ import com.cpstablet.tablet.DTO.CapitalCSDTO;
 import com.cpstablet.tablet.entity.CapitalCS;
 import com.cpstablet.tablet.repository.CapitalCSRepo;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import java.util.List;
 @Service
@@ -36,5 +37,28 @@ public class CapitalCSService {
 
     public CapitalCS getUserApprovedCapitalCCS(Long userId) {
         return null;
+    }
+    public HttpStatus deleteCapitalCS(Long capitalCSId) {
+
+        if(capitalCSRepo.findById(capitalCSId).isPresent()) {
+            capitalCSRepo.deleteById(capitalCSId);
+
+            return HttpStatus.OK;
+        }
+
+        return HttpStatus.NOT_FOUND;
+    }
+
+    public void update(CapitalCSDTO readValue, Long id) {
+
+        capitalCSRepo.save(CapitalCS.builder().
+            capitalCSId(id).
+            locationRegion(readValue.getLocationRegion()).
+            objectType(readValue.getObjectType()).
+            customer(readValue.getCustomer()).
+            executorOfPNR(readValue.getExecutorOfPNR()).
+                build());
+
+
     }
 }
