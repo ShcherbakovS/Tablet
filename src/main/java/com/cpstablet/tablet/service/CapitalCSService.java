@@ -15,16 +15,27 @@ public class CapitalCSService {
     private final CapitalCSRepo capitalCSRepo;
 
 
-    public CapitalCS create(CapitalCSDTO capitalDTO) {
+    public HttpStatus create(CapitalCSDTO capitalDTO) {
 
-        return capitalCSRepo.save(CapitalCS.builder().
-                        capitalCSName(capitalDTO.getCapitalCSName()).
-                        codeCCS(capitalDTO.getCodeCCS()).
-                        locationRegion(capitalDTO.getLocationRegion()).
-                        objectType(capitalDTO.getObjectType()).
-                        customer(capitalDTO.getCustomer()).
-                        executorOfPNR(capitalDTO.getExecutorOfPNR()).
-                        build());
+
+           capitalCSRepo.save(CapitalCS.builder().
+                    capitalCSName(capitalDTO.getCapitalCSName()).
+                    codeCCS(capitalDTO.getCodeCCS()).
+                    locationRegion(capitalDTO.getLocationRegion()).
+                    objectType(capitalDTO.getObjectType()).
+                    customer(capitalDTO.getCustomer()).
+                    CIWExecutor(capitalDTO.getCIWExecutor()).
+                    CWExecutor(capitalDTO.getCWExecutor()).
+                    customerSupervisor(capitalDTO.getCustomerSupervisor()).
+                    CWSupervisor(capitalDTO.getCWSupervisor()).
+                    CIWSupervisor(capitalDTO.getCIWSupervisor()).
+                    commentCounter(1L).
+                    build());
+            return HttpStatus.CREATED;
+
+
+
+
     }
 
     public CapitalCS findCCS(String codeCCS) {
@@ -56,9 +67,10 @@ public class CapitalCSService {
             locationRegion(readValue.getLocationRegion()).
             objectType(readValue.getObjectType()).
             customer(readValue.getCustomer()).
-            executorOfPNR(readValue.getExecutorOfPNR()).
+                CIWExecutor(readValue.getCIWExecutor()).
+                CWExecutor(readValue.getCWExecutor()).
                 build());
 
-
     }
+
 }

@@ -5,8 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
-import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -19,14 +17,13 @@ public class SystemCommonInfDTO {
     private String systemName;
     private Long comments;
     private String status;
-    private LocalDate PNRPlanDate;
-    private LocalDate PNRFactDate;
-    private LocalDate IIPlanDate;
-    private LocalDate IIFactDate;
-    private LocalDate KOPlanDate;
-    private LocalDate KOFactDate;
+    private String PNRPlanDate;
+    private String PNRFactDate;
+    private String IIPlanDate;
+    private String IIFactDate;
+    private String KOPlanDate;
+    private String KOFactDate;
     private String CIWExecutor;
     private String CWExecutor;
-    private List<String> statusList;
 
 }

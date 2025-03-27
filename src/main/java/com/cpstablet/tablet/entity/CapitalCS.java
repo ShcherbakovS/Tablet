@@ -6,9 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
-//TODO: переписать поля сущностей со строковых значений на ссылки на объекты
 @Entity
 @Data
 @AllArgsConstructor
@@ -25,8 +22,19 @@ public class CapitalCS {
     private String codeCCS;
     private String locationRegion;
     private String objectType;
+    // заказчик
     private String customer;
-    private String executorOfPNR;
-
+    // исполнитель СМР
+    private String CIWExecutor;
+    // исполнитель ПНР
+    private String CWExecutor;
+    // Куратор заказчика
+    private String customerSupervisor;
+    // Куратор ПНР
+    private String CWSupervisor;
+    // куратор СМР
+    private String CIWSupervisor;
+    // счетчик замечаний
+    private Long commentCounter;
 
 }

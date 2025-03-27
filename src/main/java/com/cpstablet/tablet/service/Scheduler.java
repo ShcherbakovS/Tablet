@@ -22,14 +22,12 @@ public class Scheduler {
     public void commentChecker() {
 
         List<Comment> commentsToCheck = commentRepo.findAll().stream().
-                filter(e-> e.getEndDateFact() == null).
-                filter(e-> e.getEndDatePlan().isBefore(LocalDate.now())).
+                filter(e-> !e.getEndDateFact().equals(" ")).
+                filter(e-> LocalDate.parse(e.getEndDatePlan()).isBefore(LocalDate.now())).
                 collect(Collectors.toList());
 
         commentsToCheck.stream().forEach(e-> e.setCommentStatus("Не устранено с просрочкой"));
 
         commentRepo.saveAll(commentsToCheck);
     }
-
-
 }

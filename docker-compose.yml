@@ -22,6 +22,8 @@ services:
     build: .
     ports:
       - "8443:8443"
+    volumes:
+      - etc/letsencrypt/live/xn----7sbpwlcifkq8d.xn--p1ai/keystore.p12
     depends_on:
       - tablet_db
     environment:

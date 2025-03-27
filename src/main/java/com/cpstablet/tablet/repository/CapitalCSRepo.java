@@ -8,4 +8,6 @@ import org.springframework.stereotype.Repository;
 public interface CapitalCSRepo extends JpaRepository<CapitalCS, Long> {
 
     CapitalCS findByCodeCCS(String codeCCS);
+
+
 }
