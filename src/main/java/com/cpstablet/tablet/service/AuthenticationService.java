@@ -6,6 +6,7 @@ import com.cpstablet.tablet.DTO.sesurityDTO.RegistrationRequestDTO;
 import com.cpstablet.tablet.entity.Role;
 import com.cpstablet.tablet.entity.Token;
 import com.cpstablet.tablet.entity.User;
+import com.cpstablet.tablet.entity.UserInfo;
 import com.cpstablet.tablet.repository.TokenRepo;
 import com.cpstablet.tablet.repository.UserRepo;
 import com.cpstablet.tablet.service.mail.MailService;
@@ -32,16 +33,20 @@ public class AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authManager;
     private final TokenRepo tokenRepo;
+
     private final MailService mailService;
 
 
     public void registration(RegistrationRequestDTO registration) {
         User user = new User();
+        UserInfo userInfo = new UserInfo();
 
         user.setUsername(registration.getUsername());
         user.setEmail(registration.getEmail());
         user.setPassword(passwordEncoder.encode(registration.getPassword()));
         user.setRole(Role.USER);
+        user.setUserInfo(userInfo);
+        userInfo.setUser(user);
 
 
         userRepo.save(user);

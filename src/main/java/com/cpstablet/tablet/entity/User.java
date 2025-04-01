@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @AllArgsConstructor
@@ -32,6 +33,23 @@ public class User implements UserDetails {
     private Role role;
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Token> tokens;
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+    @JoinTable(
+            name = "user_capitals",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "capitalcs_id")
+    )
+    Set<CapitalCS> allowedObjects;
+
+    @OneToOne(fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL,
+            mappedBy = "user")
+    private UserInfo userInfo;
+
+    @OneToMany(mappedBy = "user",
+                cascade = CascadeType.ALL,
+                orphanRemoval = true)
+    List<Application> applications;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

@@ -33,7 +33,7 @@ public class FileService {
     private final SystemRepo systemRepo;
     private final PhotoRepo photoRepo;
 
-// загрузка структуры ОКС (подобъекты, системы)
+    // загрузка структуры ОКС (подобъекты, системы)
     public void uploadStructure(MultipartFile file, String CCSCode) throws IOException {
 
 
@@ -45,44 +45,37 @@ public class FileService {
 
         Row checkRow = sheet.getRow(9);
 
-        List<String> strings = List.of("Поз. по ГП", "Объекты по ГП", "Системы", "Шифр РД", "Номер акта ИИ", "Номер акта КО" );
 
-        List<String> strings2 = List.of(
-                checkRow.getCell(0).getStringCellValue().replaceAll("[\\r\\n]", ""),
-                checkRow.getCell(1).getStringCellValue().replaceAll("[\\r\\n]", ""),
-                checkRow.getCell(2).getStringCellValue().replaceAll("[\\r\\n]", ""),
-                checkRow.getCell(3).getStringCellValue().replaceAll("[\\r\\n]", ""),
-                checkRow.getCell(4).getStringCellValue().replaceAll("[\\r\\n]", ""),
-                checkRow.getCell(5).getStringCellValue().replaceAll("[\\r\\n]", ""));
+        if (!checkDocument(checkRow)) {
 
-        strings.stream().forEach(s-> System.out.println(s));
-        strings2.stream().forEach(s-> System.out.println(s));
+            throw new RuntimeException("Наименования заголовков не соответствуют шаблону");
 
-        if (!strings.equals(strings2)) {
-
-            throw new RuntimeException("Наименования заголовков не соответствуют шаблону " + strings);
-
-        } else if(systemRepo.getAllByCCSNumber(CCSCode).isEmpty()) {
+        } else if (systemRepo.getAllByCCSNumber(CCSCode).isEmpty()) {
 
             for (int i = 10; i <= sheet.getLastRowNum(); i++) {
-                subObjectCreate(sheet.getRow(i), CCSCode);
+                if (sheet.getRow(i) != null) {
+                    subObjectCreate(sheet.getRow(i), CCSCode);
+                }
             }
 
             for (int i = 10; i <= sheet.getLastRowNum(); i++) {
-                systemCreate(sheet.getRow(i), CCSCode);
+                if (sheet.getRow(i) != null) {
+                    systemCreate(sheet.getRow(i), CCSCode);
+                }
             }
         } else {
 
-            throw  new RuntimeException("Структура данного объекта уже загружена");
+            throw new RuntimeException("Структура данного объекта уже загружена");
         }
     }
+
     private void subObjectCreate(Row row, String CCSCode) {
 
         List<String> checkKONumber = subObjectRepo.findByCCSCode(CCSCode).stream().map(SubObject::getNumberKO).collect(Collectors.toList());
 
         DataFormatter df = new DataFormatter();
 
-        if(!checkKONumber.contains(df.formatCellValue(row.getCell(5)))) {
+        if (!checkKONumber.contains(df.formatCellValue(row.getCell(5)))) {
             subObjectRepo.save(SubObject.builder().
                     subObjectName(df.formatCellValue(row.getCell(1))).
                     numberKO(df.formatCellValue(row.getCell(5))).
@@ -91,11 +84,12 @@ public class FileService {
                     build());
         }
     }
+
     private void systemCreate(Row row, String CCSCode) {
 
         DataFormatter df = new DataFormatter();
 
-        if(row.getCell(0) != null) {
+        if (row.getCell(0) != null) {
             systemRepo.save(PNRSystem.builder().
                     PNRSystemName(df.formatCellValue(row.getCell(CellReference.convertColStringToIndex("C")))).
                     PNRSystemRD(df.formatCellValue(row.getCell(CellReference.convertColStringToIndex("D")))).
@@ -114,8 +108,9 @@ public class FileService {
                     build());
         }
     }
+
     public void uploadPhotos(MultipartFile file, Long id) throws IOException {
-        System.out.println(file.getContentType() + "\n " + file.getOriginalFilename() + "\n " + file.getSize() );
+        System.out.println(file.getContentType() + "\n " + file.getOriginalFilename() + "\n " + file.getSize());
         photoRepo.save(Photo.builder().
                 fileName(file.getName()).
                 contentType(file.getContentType()).
@@ -124,9 +119,10 @@ public class FileService {
                 commentId(id).
                 build());
     }
+
     public Photo getPhotosByCommentId(Long id) {
 
-     return photoRepo.getPhotoByCommentId(id);
+        return photoRepo.getPhotoByCommentId(id);
 
 //        return  ResponseEntity.ok().
 //                header("fileName").contentType(MediaType.IMAGE_JPEG).
@@ -134,17 +130,35 @@ public class FileService {
 //                        new InputStreamResource(new ByteArrayInputStream(photo.getBytes()))
 //                );
     }
+
     public HttpStatus deletePhoto(Long id) {
 
-            photoRepo.deleteById(id);
+        photoRepo.deleteById(id);
 
-            return HttpStatus.OK;
-
-    }
-    private boolean checkDocument() {
-
-        return false;
-    }
-
+        return HttpStatus.OK;
 
     }
+
+    private boolean checkDocument(Row checkRow) {
+
+        List<String> strings = List.of("Поз. по ГП", "Объекты по ГП", "Системы", "Шифр РД", "Номер акта ИИ", "Номер акта КО");
+
+        List<String> strings2 = List.of(
+                checkRow.getCell(0).getStringCellValue().replaceAll("[\\r\\n]", ""),
+                checkRow.getCell(1).getStringCellValue().replaceAll("[\\r\\n]", ""),
+                checkRow.getCell(2).getStringCellValue().replaceAll("[\\r\\n]", ""),
+                checkRow.getCell(3).getStringCellValue().replaceAll("[\\r\\n]", ""),
+                checkRow.getCell(4).getStringCellValue().replaceAll("[\\r\\n]", ""),
+                checkRow.getCell(5).getStringCellValue().replaceAll("[\\r\\n]", ""));
+
+        if (!strings.equals(strings2)) {
+
+            return false;
+        }
+
+        return true;
+    }
+}
+
+
+

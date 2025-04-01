@@ -33,13 +33,10 @@ public class CapitalCSService {
                     build());
             return HttpStatus.CREATED;
 
-
-
-
     }
 
     public CapitalCS findCCS(String codeCCS) {
-        return capitalCSRepo.findByCodeCCS(codeCCS);
+        return capitalCSRepo.findByCodeCCS(codeCCS).orElseThrow(()-> new RuntimeException("Объекта с кодом "+ codeCCS + " не существует"));
     }
     public List<CapitalCS> findAll() {
 

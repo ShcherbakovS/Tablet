@@ -40,10 +40,11 @@ public class SecurityConfig {
 
         httpSecurity.authorizeHttpRequests( auth-> {
 
-            auth.requestMatchers("/registration/**", "/login/**","/refresh_token/**", "/comments/**", "/capitals/**",
-                    "/systems/**", "/commons/**","/files/**", "/subObjects/**").permitAll();
-            auth.requestMatchers("/admin**","/authUser**").hasAnyAuthority("ADMIN");
+            auth.requestMatchers("/registration/**", "/login/**","/refresh_token/**").permitAll();
+            auth.requestMatchers("/admin**").hasAnyAuthority("ADMIN");
             auth.requestMatchers("/authUser**").hasAnyAuthority("USER");
+            auth.requestMatchers("/comments/**", "/capitals/**",
+                    "/systems/**", "/commons/**","/files/**", "/subObjects/**", "/user/**").hasAnyAuthority("ADMIN", "USER");
             auth.anyRequest().authenticated();
 
         })

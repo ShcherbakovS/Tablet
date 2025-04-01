@@ -40,6 +40,8 @@ public class JwtService {
         JwtBuilder builder = Jwts.builder()
                 // Установка субъекта токена (имя пользователя)
                 .subject(user.getUsername())
+                .claim("role", user.getRole().name())
+                .claim("userId", user.getId())
                 // (текущая дата)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 // (текущая дата + 10 часов)

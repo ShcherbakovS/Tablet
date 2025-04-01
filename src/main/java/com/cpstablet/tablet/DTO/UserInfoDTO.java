@@ -1,19 +1,21 @@
 package com.cpstablet.tablet.DTO;
 
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-
-@Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
-public class UserDTO {
+@Data
+public class UserInfoDTO {
 
     private Long id;
-    private String username;
-    private UserInfoDTO userInfo;
+    private String fullName;
+    private String phoneNumber;
+    private String organisation;
+
 
 }

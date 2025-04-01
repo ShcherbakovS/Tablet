@@ -5,15 +5,18 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
 
-@Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class UserDTO {
+@Data
+public class ApplicationResponseDTO {
 
     private Long id;
     private String username;
-    private UserInfoDTO userInfo;
+    private Long userId;
+    private List<CapitalCSDTO> objectsToAdd;
+    private String description;
 
 }

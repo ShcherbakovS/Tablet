@@ -5,15 +5,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
 
-@Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class UserDTO {
+@Data
+public class ApplicationRequestDTO {
 
-    private Long id;
-    private String username;
-    private UserInfoDTO userInfo;
 
+    private List<String> objectsToAdd;
+    private String description;
 }
