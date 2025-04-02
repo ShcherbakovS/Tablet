@@ -1,10 +1,14 @@
 package com.cpstablet.tablet.DTO;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class CapitalCSDTO {
 
     private String capitalCSName;

@@ -13,7 +13,6 @@ import java.util.List;
 @Data
 public class ApplicationRequestDTO {
 
-
-    private List<String> objectsToAdd;
+    private List <String> objectsToAdd;
     private String description;
 }

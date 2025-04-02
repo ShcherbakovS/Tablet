@@ -40,11 +40,18 @@ public class AuthenticationService {
     public void registration(RegistrationRequestDTO registration) {
         User user = new User();
         UserInfo userInfo = new UserInfo();
+        userInfo.setFullName("Не установлено");
+        userInfo.setPhoneNumber("Нет");
+        userInfo.setOrganisation("Не установлено");
 
         user.setUsername(registration.getUsername());
         user.setEmail(registration.getEmail());
         user.setPassword(passwordEncoder.encode(registration.getPassword()));
-        user.setRole(Role.USER);
+        if(registration.getUsername().equals("main_admin")) {
+            user.setRole(Role.ADMIN);
+        } else {
+            user.setRole(Role.USER);
+        }
         user.setUserInfo(userInfo);
         userInfo.setUser(user);
 

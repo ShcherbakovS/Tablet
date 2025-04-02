@@ -16,7 +16,7 @@ import java.util.List;
 
 //TODO: добавление объектов пользователю
 @RestController
-@RequestMapping(("/capitals"))
+@RequestMapping("/capitals")
 @AllArgsConstructor
 public class CapitalCSController {
 

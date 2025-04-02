@@ -15,7 +15,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -109,11 +111,11 @@ public class UserServiceImpl implements UserService {
                 UserDTO.builder()
                         .id(user.getId())
                         .username(user.getUsername())
-                        .userInfo(UserInfoDTO.builder()
+                        .userInfo(user.getUserInfo() == null? new UserInfoDTO(): (UserInfoDTO.builder()
                                 .fullName(user.getUserInfo().getFullName())
                                 .organisation(user.getUserInfo().getOrganisation())
                                 .phoneNumber(user.getUserInfo().getPhoneNumber())
-                                .build())
+                                .build()))
                         .build()
 
         ).collect(Collectors.toList());
@@ -142,17 +144,35 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public HttpStatus createApplication(ApplicationRequestDTO applicationRequestDTO, Long id) {
+        System.out.println("Пользователь создание запроса");
+        StringBuilder defaultValueForDescription = new StringBuilder(applicationRequestDTO.getDescription());
+        StringBuilder builder = new StringBuilder("\nОбъекты которых нет в системе:");
 
         Application userApplication = new Application();
         userApplication.setCreationTime(LocalDateTime.now());
         userApplication.setApproved(false);
-        userApplication.setDescription(applicationRequestDTO.getDescription());
-        userApplication.setObjectsToAdd(applicationRequestDTO.getObjectsToAdd().stream().
-                map(s-> capitalCSRepo.findByCodeCCS(s).orElse(null)).
-                collect(Collectors.toList()));
+        userApplication.setObjectsToAdd(applicationRequestDTO.getObjectsToAdd().
+                stream().
+                map(s -> {
+                    if (capitalCSRepo.findByCodeCCS(s).isEmpty()) {
+                        builder.append(" ");
+                        builder.append(s);
+                        return null;
+                    } else {
+                        return capitalCSRepo.findByCodeCCS(s).get();
+                    }
+                }).filter(Objects::nonNull).collect(Collectors.toList()));
 
+        if (builder.equals("Объекты которых нет в системе:")) {
+            userApplication.setDescription(defaultValueForDescription.toString());
+        } else {
+            userApplication.setDescription(defaultValueForDescription.append(builder).toString());
+        }
+
+        System.out.println(userApplication + " Запрос тело");
 
         User user = userRepo.findById(id).orElseThrow(()-> new UsernameNotFoundException("Пользователь не найден"));
+        userApplication.setUser(user);
         user.getApplications().add(userApplication);
         userRepo.save(user);
 

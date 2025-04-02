@@ -27,37 +27,38 @@ public class AdminToolsController {
         return "Админ";
     }
 
-    @PostMapping("/delete_user")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity delete(@RequestBody String username) {
-
+    @DeleteMapping("/delete_user")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity delete(@RequestPart("username") String username) {
+        System.out.println(username);
         return userService.deleteByUserName(username);
     }
     //TODO заявка на присвоение роли
     @PostMapping("/set_user_role")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity setUserRole(@RequestBody String username) {
 
         return userService.setUserRole(username);
     }
     //TODO заявка на доступ к объекту
     @PostMapping("/set_objects")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public HttpStatus setObjects(@RequestParam("id") Long id,
                                 @RequestParam("objects") List <String> objects) {
         return adminService.setObjectsToUser(id, objects);
     }
     @GetMapping("/getUsers")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public List<UserDTO> getUsers() {
         return userService.getAllUsers();
     }
     @GetMapping("/getApplications")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public List<ApplicationResponseDTO> getApplications() {
         return adminService.getApplications();
     }
     @GetMapping("/getApplication/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ApplicationResponseDTO getApplication(@PathVariable("id") Long id){
         return adminService.getApplication(id);
     }

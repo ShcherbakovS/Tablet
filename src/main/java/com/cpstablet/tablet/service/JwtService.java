@@ -30,7 +30,7 @@ public class JwtService {
     }
     private SecretKey getSigningKey() {
 
-//        byte[] keyBytes = Decoders.BASE64URL.decode(secretKey);
+
 
         return Keys.hmacShaKeyFor(Decoders.BASE64URL.decode(secretKey));
     }

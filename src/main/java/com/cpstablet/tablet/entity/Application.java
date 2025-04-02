@@ -33,6 +33,7 @@ public class Application {
 
     private LocalDateTime creationTime;
     @ManyToOne
+    @MapsId
     @JoinColumn(name = "user_id")
     private User user;
 

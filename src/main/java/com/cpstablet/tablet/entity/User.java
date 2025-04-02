@@ -47,6 +47,7 @@ public class User implements UserDetails {
     private UserInfo userInfo;
 
     @OneToMany(mappedBy = "user",
+                fetch = FetchType.LAZY,
                 cascade = CascadeType.ALL,
                 orphanRemoval = true)
     List<Application> applications;

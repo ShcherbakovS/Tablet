@@ -14,7 +14,7 @@ import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 
 
 @RestController
-@RequestMapping(("/files"))
+@RequestMapping("/files")
 @AllArgsConstructor
 //TODO: переписать логику в контроллеры систем, уточнить корректность исполнения логики в данных контроллерах
 public class FileController {
