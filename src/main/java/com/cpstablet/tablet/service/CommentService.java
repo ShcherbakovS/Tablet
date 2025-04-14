@@ -21,7 +21,6 @@ public class CommentService {
 
     private final CommentRepo commentRepo;
 
-
     public Comment create(CommentDTO comDTO) {
 
         LocalDate startDate = LocalDate.parse(comDTO.getStartDate(), formatter);
@@ -42,7 +41,6 @@ public class CommentService {
                 startDate(comDTO.getStartDate()).
                 //TODO: без проверки тупо пишем то что прилетело с фронта
                 endDatePlan(fromDateToString(LocalDate.parse(comDTO.getStartDate(), formatter).plusDays(10).toString())).
-                // TODO: нужна ли проверка на пустую строку?
 
                 endDateFact((comDTO.getEndDateFact().equals(" "))? " " : comDTO.getEndDateFact()).
 
