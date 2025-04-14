@@ -15,9 +15,9 @@ import java.util.Optional;
 public interface UserService extends UserDetailsService {
     boolean existsByUsername(String username);
     boolean existsByEmail(String email);
-    ResponseEntity deleteByUserName(String username);
+    ResponseEntity deleteByUserId(Long userId);
 
-    ResponseEntity setUserRole(String username);
+    ResponseEntity setUserRole(Long userId);
 
     List<CapitalCSDTO> getAllowedObjects(Long id);
 
@@ -30,4 +30,6 @@ public interface UserService extends UserDetailsService {
     HttpStatus updateUserInfo(UserInfoDTO userInfoDTO);
 
     HttpStatus createApplication(ApplicationRequestDTO applicationRequestDTO, Long id);
+
+    void setUserStatus(Long id);
 }

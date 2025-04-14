@@ -29,6 +29,8 @@ public class User implements UserDetails {
     private String email;
     @Column(name = "password")
     private String password;
+    @Column(name = "is_enabled")
+    private Boolean isEnabled;
     @Enumerated(EnumType.STRING)
     private Role role;
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
@@ -74,6 +76,6 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return isEnabled;
     }
 }

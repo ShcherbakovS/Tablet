@@ -16,6 +16,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.MailException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -40,25 +41,25 @@ public class AuthenticationService {
     public void registration(RegistrationRequestDTO registration) {
         User user = new User();
         UserInfo userInfo = new UserInfo();
-        userInfo.setFullName("Не установлено");
-        userInfo.setPhoneNumber("Нет");
-        userInfo.setOrganisation("Не установлено");
 
-        user.setUsername(registration.getUsername());
+        userInfo.setFullName(registration.getFullName());
+        userInfo.setPhoneNumber("Нет");
+        userInfo.setOrganisation(registration.getOrganisation());
+
+        user.setUsername(registration.getEmail());
         user.setEmail(registration.getEmail());
         user.setPassword(passwordEncoder.encode(registration.getPassword()));
-        if(registration.getUsername().equals("main_admin")) {
-            user.setRole(Role.ADMIN);
-        } else {
-            user.setRole(Role.USER);
-        }
+        user.setRole(Role.NONE);
         user.setUserInfo(userInfo);
+        user.setIsEnabled(false);
         userInfo.setUser(user);
-
-
         userRepo.save(user);
-        System.out.println(registration.getEmail());
-//        mailService.sendEmail(registration);
+
+       try {
+           mailService.sendEmail(registration);
+       } catch (MailException e) {
+           System.out.println("Адрес электронной почты недоступен");
+       }
     }
 
     private void revokeAllToken(User user) {

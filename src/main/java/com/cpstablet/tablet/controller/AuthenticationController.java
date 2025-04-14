@@ -33,7 +33,9 @@ public class AuthenticationController {
 
         RegistrationRequestDTO dto = myMapper.readValue(request,RegistrationRequestDTO.class);
 
-        if(userService.existsByUsername(dto.getUsername())) {
+        System.out.println(dto + " запрос на регичтрацию");
+
+        if(userService.existsByUsername(dto.getEmail())) {
             return ResponseEntity.badRequest().body("Имя пользователя занято");
         }
         if (userService.existsByEmail(dto.getEmail())) {

@@ -56,24 +56,26 @@ public class UserServiceImpl implements UserService {
         return false;
     }
     @Override
-    public ResponseEntity deleteByUserName(String username) {
+    public ResponseEntity deleteByUserId(Long userId) {
 
-        if (existsByUsername(username)) {
-            userRepo.deleteByUsername(username);
-            return ResponseEntity.ok().body("Пользователь " + username + " успешно удален.");
+        User user = userRepo.findById(userId).orElseThrow(()-> new UsernameNotFoundException("Пользователь не найден"));
+
+        if (existsByUsername(user.getUsername())) {
+            userRepo.deleteById(userId);
+            return ResponseEntity.ok().body("Пользователь " + user.getUserInfo().getFullName() + " успешно удален.");
         }
         return ResponseEntity.notFound().build();
     }
 
     @Override
-    public ResponseEntity setUserRole(String username) {
-        User user = userRepo.findByUsername(username).orElseThrow(
-                ()-> new UsernameNotFoundException("Пользователь с именем " + username + " не найден")
+    public ResponseEntity setUserRole(Long userId) {
+        User user = userRepo.findById(userId).orElseThrow(
+                ()-> new UsernameNotFoundException("Пользователь не найден")
         );
         user.setRole(Role.ADMIN);
         userRepo.save(user);
 
-        return ResponseEntity.ok().body("Пользователю " + username + " присвоена роль Администратор");
+        return ResponseEntity.ok().body("Пользователю " + user.getUserInfo().getFullName() + " присвоена роль Администратор");
     }
 
     @Override
@@ -111,6 +113,7 @@ public class UserServiceImpl implements UserService {
                 UserDTO.builder()
                         .id(user.getId())
                         .username(user.getUsername())
+                        .isEnabled(user.isEnabled())
                         .userInfo(user.getUserInfo() == null? new UserInfoDTO(): (UserInfoDTO.builder()
                                 .fullName(user.getUserInfo().getFullName())
                                 .organisation(user.getUserInfo().getOrganisation())
@@ -169,13 +172,18 @@ public class UserServiceImpl implements UserService {
             userApplication.setDescription(defaultValueForDescription.append(builder).toString());
         }
 
-        System.out.println(userApplication + " Запрос тело");
-
         User user = userRepo.findById(id).orElseThrow(()-> new UsernameNotFoundException("Пользователь не найден"));
         userApplication.setUser(user);
         user.getApplications().add(userApplication);
         userRepo.save(user);
 
         return HttpStatus.OK;
+    }
+
+    @Override
+    public void setUserStatus(Long id) {
+        User user = userRepo.findById(id).orElseThrow(()-> new UsernameNotFoundException("Пользователь не найден"));
+        user.setIsEnabled(true);
+        userRepo.save(user);
     }
 }

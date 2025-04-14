@@ -21,24 +21,18 @@ public class AdminToolsController {
     private final UserService userService;
     private final AdminService adminService;
 
-    @GetMapping("/isAdminRole")
-    @PreAuthorize("hasRole('ADMIN')")
-    public String isAdminRole()  {
-        return "Админ";
-    }
-
     @DeleteMapping("/delete_user")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity delete(@RequestPart("username") String username) {
-        System.out.println(username);
-        return userService.deleteByUserName(username);
+    public ResponseEntity delete(@RequestPart("id") Long userId) {
+        System.out.println(userId);
+        return userService.deleteByUserId(userId);
     }
     //TODO заявка на присвоение роли
     @PostMapping("/set_user_role")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity setUserRole(@RequestBody String username) {
+    public ResponseEntity setUserRole(@RequestParam("id") Long userId) {
 
-        return userService.setUserRole(username);
+        return userService.setUserRole(userId);
     }
     //TODO заявка на доступ к объекту
     @PostMapping("/set_objects")
@@ -61,5 +55,11 @@ public class AdminToolsController {
     @PreAuthorize("hasAuthority('ADMIN')")
     public ApplicationResponseDTO getApplication(@PathVariable("id") Long id){
         return adminService.getApplication(id);
+    }
+    @PostMapping("/acceptUser")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public HttpStatus acceptUser(@RequestParam("id") Long id) {
+        userService.setUserStatus(id);
+        return HttpStatus.OK;
     }
 }
