@@ -20,7 +20,7 @@ public class FileController {
     private final FileService fileService;
 
     @PostMapping("/uploadStructure/{nameCSS}")
-    public ResponseEntity downloadStructure(@RequestParam("file") MultipartFile multipartFile, @PathVariable ("nameCSS") String nameCSS) {
+    public ResponseEntity uploadStructure(@RequestParam("file") MultipartFile multipartFile, @PathVariable ("nameCSS") String nameCSS) {
 
         System.out.println(nameCSS);
             try {

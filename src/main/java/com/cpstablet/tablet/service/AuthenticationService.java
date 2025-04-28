@@ -3,10 +3,8 @@ package com.cpstablet.tablet.service;
 import com.cpstablet.tablet.DTO.sesurityDTO.AuthenticationResponseDTO;
 import com.cpstablet.tablet.DTO.sesurityDTO.LoginRequestDTO;
 import com.cpstablet.tablet.DTO.sesurityDTO.RegistrationRequestDTO;
-import com.cpstablet.tablet.entity.Role;
-import com.cpstablet.tablet.entity.Token;
-import com.cpstablet.tablet.entity.User;
-import com.cpstablet.tablet.entity.UserInfo;
+import com.cpstablet.tablet.entity.*;
+import com.cpstablet.tablet.repository.RegistrationAppRepo;
 import com.cpstablet.tablet.repository.TokenRepo;
 import com.cpstablet.tablet.repository.UserRepo;
 import com.cpstablet.tablet.service.mail.MailService;
@@ -34,13 +32,14 @@ public class AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authManager;
     private final TokenRepo tokenRepo;
+    private final RegistrationAppRepo regAppRepo;
 
-    private final MailService mailService;
 
 
     public void registration(RegistrationRequestDTO registration) {
         User user = new User();
         UserInfo userInfo = new UserInfo();
+        RegistrationApplication registrationApplication = new RegistrationApplication();
 
         userInfo.setFullName(registration.getFullName());
         userInfo.setPhoneNumber("Нет");
@@ -49,17 +48,25 @@ public class AuthenticationService {
         user.setUsername(registration.getEmail());
         user.setEmail(registration.getEmail());
         user.setPassword(passwordEncoder.encode(registration.getPassword()));
-        user.setRole(Role.NONE);
+        if (registration.getEmail().equals("main_admin")){
+            user.setRole(Role.ADMIN);
+            user.setIsEnabled(true);
+        } else {
+            user.setRole(Role.NONE);
+            user.setIsEnabled(false);
+        }
         user.setUserInfo(userInfo);
-        user.setIsEnabled(false);
-        userInfo.setUser(user);
-        userRepo.save(user);
 
-       try {
-           mailService.sendEmail(registration);
-       } catch (MailException e) {
-           System.out.println("Адрес электронной почты недоступен");
-       }
+        userInfo.setUser(user);
+        System.out.println(user);
+        User savedUser = userRepo.save(user);
+
+        registrationApplication.setApproved(false);
+        registrationApplication.setDescription("Запрос на регистрацию в системе");
+        registrationApplication.setUser(savedUser);
+
+        regAppRepo.save(registrationApplication);
+
     }
 
     private void revokeAllToken(User user) {
@@ -117,7 +124,7 @@ public class AuthenticationService {
         User user = userRepo.findByUsername(username).
                 orElseThrow(()-> new UsernameNotFoundException("Пользователь " + username + " не найден"));
 
-        if(jwtService.isValid(token, user)) {
+        if(jwtService.isValidRefreshToken(token, user)) {
 
             String accessToken = jwtService.generateAccessToken(user);
             String refreshToken = jwtService.generateRefreshToken(user);

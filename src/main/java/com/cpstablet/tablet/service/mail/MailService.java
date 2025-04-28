@@ -2,6 +2,7 @@ package com.cpstablet.tablet.service.mail;
 
 import com.cpstablet.tablet.DTO.sesurityDTO.RegistrationRequestDTO;
 import lombok.AllArgsConstructor;
+import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
@@ -22,6 +23,10 @@ public class MailService {
         message.setText("Регистрация прошла успешно! \n" +
                 "Логин в системе - " + registration.getEmail() +"\n" +
                 "Ваш пароль - " + registration.getPassword());
-        mailSender.send(message);
+        try {
+            mailSender.send(message);
+        } catch (MailException e) {
+            System.out.println("Некорректная почта");
+        }
     }
 }

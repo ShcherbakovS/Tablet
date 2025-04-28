@@ -50,7 +50,7 @@ public class CommonInfoService {
                         PNRSystems.stream().filter(e-> e.getPNRSystemStatus().contains("Ведутся ПНР")).count() +
                         PNRSystems.stream().filter(e-> e.getPNRSystemStatus().contains("Проведены ИИ")).count() +
                         PNRSystems.stream().filter(e-> e.getPNRSystemStatus().contains("Акт ИИ подписан")).count() +
-                        PNRSystems.stream().filter(e-> e.getPNRSystemStatus().contains("Проведено КО")).count() +
+                        PNRSystems.stream().filter(e-> e.getPNRSystemStatus().contains("Акт ИИ на подписи")).count() + PNRSystems.stream().filter(e-> e.getPNRSystemStatus().contains("Проведено КО")).count() +
                         PNRSystems.stream().filter(e-> e.getPNRSystemStatus().contains("Акт КО на подписи")).count() +
                         PNRSystems.stream().filter(e-> e.getPNRSystemStatus().contains("Акт КО подписан")).count() +
                         PNRSystems.stream().filter(e-> e.getPNRSystemStatus().contains("Проводится КО")).count()
@@ -109,7 +109,7 @@ public class CommonInfoService {
                        CWExecutor(e.getCWExecutor()).
                        status(e.getPNRSystemStatus()).
                        comments(commentRepo.findCommentsByCodeCCS(subObject.getCCSCode()).stream()
-                               .filter(o -> o.getIiNumber().equals(e.getPNRSystemII())).count()).
+                               .filter(o -> o.getIiNumber().equals(e.getPNRSystemII())).filter(o-> !o.getEndDatePlan().equals(" ")).count()).
                        build()).sorted(Comparator.comparing(SystemCommonInfDTO::getPNRSystemId)).collect(Collectors.toList());
 
        return SubobjectCommonInfDTO.builder().

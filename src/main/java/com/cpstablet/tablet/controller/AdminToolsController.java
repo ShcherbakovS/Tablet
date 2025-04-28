@@ -2,7 +2,7 @@ package com.cpstablet.tablet.controller;
 
 import com.cpstablet.tablet.DTO.ApplicationResponseDTO;
 import com.cpstablet.tablet.DTO.UserDTO;
-import com.cpstablet.tablet.entity.User;
+import com.cpstablet.tablet.DTO.sesurityDTO.RegistrationRequestDTO;
 import com.cpstablet.tablet.service.AdminService;
 import com.cpstablet.tablet.service.UserService;
 import lombok.AllArgsConstructor;
@@ -21,18 +21,25 @@ public class AdminToolsController {
     private final UserService userService;
     private final AdminService adminService;
 
+    @GetMapping("/getUser/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public UserDTO getUser(@PathVariable("id") Long id) {
+        return userService.getUserById(id);
+    }
+
     @DeleteMapping("/delete_user")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity delete(@RequestPart("id") Long userId) {
+    public ResponseEntity delete(@RequestParam("id") Long userId) {
         System.out.println(userId);
         return userService.deleteByUserId(userId);
     }
     //TODO заявка на присвоение роли
     @PostMapping("/set_user_role")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity setUserRole(@RequestParam("id") Long userId) {
-
-        return userService.setUserRole(userId);
+    public ResponseEntity setUserRole(@RequestParam("id") Long userId,
+                                        @RequestParam("role") String role) {
+        System.out.println(role);
+        return userService.setUserRole(userId, role);
     }
     //TODO заявка на доступ к объекту
     @PostMapping("/set_objects")
@@ -41,6 +48,13 @@ public class AdminToolsController {
                                 @RequestParam("objects") List <String> objects) {
         return adminService.setObjectsToUser(id, objects);
     }
+    @GetMapping("/getRegistrationApps")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public List<RegistrationRequestDTO> getRegistrationApps() {
+
+        return null;
+    }
+
     @GetMapping("/getUsers")
     @PreAuthorize("hasAuthority('ADMIN')")
     public List<UserDTO> getUsers() {
@@ -49,17 +63,24 @@ public class AdminToolsController {
     @GetMapping("/getApplications")
     @PreAuthorize("hasAuthority('ADMIN')")
     public List<ApplicationResponseDTO> getApplications() {
+        System.out.println("В методе");
         return adminService.getApplications();
     }
     @GetMapping("/getApplication/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
     public ApplicationResponseDTO getApplication(@PathVariable("id") Long id){
+
         return adminService.getApplication(id);
     }
     @PostMapping("/acceptUser")
     @PreAuthorize("hasAuthority('ADMIN')")
     public HttpStatus acceptUser(@RequestParam("id") Long id) {
-        userService.setUserStatus(id);
+
         return HttpStatus.OK;
+    }
+    @DeleteMapping("/deleteApplications")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public void deleteApps() {
+        adminService.deleteApps();
     }
 }

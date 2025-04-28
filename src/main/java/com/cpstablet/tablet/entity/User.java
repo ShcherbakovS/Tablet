@@ -35,6 +35,7 @@ public class User implements UserDetails {
     private Role role;
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Token> tokens;
+
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinTable(
             name = "user_capitals",
@@ -48,11 +49,15 @@ public class User implements UserDetails {
             mappedBy = "user")
     private UserInfo userInfo;
 
-    @OneToMany(mappedBy = "user",
-                fetch = FetchType.LAZY,
+    @OneToMany( fetch = FetchType.LAZY,
                 cascade = CascadeType.ALL,
                 orphanRemoval = true)
     List<Application> applications;
+    
+    @OneToOne(fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL,
+            mappedBy = "user")
+    private RegistrationApplication registrationApplication;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

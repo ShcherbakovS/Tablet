@@ -2,6 +2,7 @@ package com.cpstablet.tablet.controller;
 
 import com.cpstablet.tablet.DTO.CapitalCSDTO;
 import com.cpstablet.tablet.entity.CapitalCS;
+import com.cpstablet.tablet.entity.User;
 import com.cpstablet.tablet.service.CapitalCSService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -10,8 +11,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import javax.naming.Context;
 import java.util.List;
 
 //TODO: добавление объектов пользователю
@@ -55,6 +59,7 @@ public class CapitalCSController {
 
     @GetMapping("/getAll")
     public  ResponseEntity<List<CapitalCS>> getAll() {
+
         return new ResponseEntity<>(capitalService.findAll(), HttpStatus.OK);
     }
 

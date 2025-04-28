@@ -50,22 +50,23 @@ public class FileService {
 
             throw new RuntimeException("Наименования заголовков не соответствуют шаблону");
 
-        } else if (systemRepo.getAllByCCSNumber(CCSCode).isEmpty()) {
+        } else {
+            if(!systemRepo.getAllByCCSNumber(CCSCode).isEmpty()) {
+                systemRepo.deleteAllByCCSCode(CCSCode);
+                subObjectRepo.deleteAllByCCSCode(CCSCode);
+            }
 
-            for (int i = 10; i <= sheet.getLastRowNum(); i++) {
+            for (int i = 10; i <= sheet.getLastRowNum() -1; i++) {
                 if (sheet.getRow(i) != null) {
                     subObjectCreate(sheet.getRow(i), CCSCode);
                 }
             }
 
-            for (int i = 10; i <= sheet.getLastRowNum(); i++) {
+            for (int i = 10; i <= sheet.getLastRowNum() -1; i++) {
                 if (sheet.getRow(i) != null) {
                     systemCreate(sheet.getRow(i), CCSCode);
                 }
             }
-        } else {
-
-            throw new RuntimeException("Структура данного объекта уже загружена");
         }
     }
 
@@ -76,12 +77,17 @@ public class FileService {
         DataFormatter df = new DataFormatter();
 
         if (!checkKONumber.contains(df.formatCellValue(row.getCell(5)))) {
+
             subObjectRepo.save(SubObject.builder().
                     subObjectName(df.formatCellValue(row.getCell(1))).
                     numberKO(df.formatCellValue(row.getCell(5))).
                     CCSCode(CCSCode).
                     status(" ").
                     build());
+
+//            if(Integer.valueOf(so.getNumberKO()).intValue() != 0) {
+//                subObjectRepo.save(so);
+//            }
         }
     }
 

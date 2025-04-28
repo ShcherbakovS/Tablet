@@ -3,7 +3,6 @@ package com.cpstablet.tablet.service.ServiceImpl;
 import com.cpstablet.tablet.DTO.*;
 import com.cpstablet.tablet.entity.*;
 import com.cpstablet.tablet.repository.CapitalCSRepo;
-import com.cpstablet.tablet.repository.UserInfoRepo;
 import com.cpstablet.tablet.repository.UserRepo;
 import com.cpstablet.tablet.service.ApplicationService;
 import com.cpstablet.tablet.service.UserService;
@@ -15,10 +14,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -68,14 +65,30 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResponseEntity setUserRole(Long userId) {
+    public ResponseEntity setUserRole(Long userId, String role) {
+
         User user = userRepo.findById(userId).orElseThrow(
                 ()-> new UsernameNotFoundException("Пользователь не найден")
         );
-        user.setRole(Role.ADMIN);
+
+        switch (role) {
+            case "NONE":
+                user.setRole(Role.NONE);
+                user.setIsEnabled(false);
+                break;
+            case "ADMIN":
+                user.setRole(Role.ADMIN);
+                user.setIsEnabled(true);
+                break;
+            case "USER":
+                user.setRole(Role.USER);
+                user.setIsEnabled(true);
+                break;
+        }
+
         userRepo.save(user);
 
-        return ResponseEntity.ok().body("Пользователю " + user.getUserInfo().getFullName() + " присвоена роль Администратор");
+        return ResponseEntity.ok().body("Пользователю " + user.getUserInfo().getFullName() + " присвоена роль " + user.getRole());
     }
 
     @Override
@@ -109,25 +122,14 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<UserDTO> getAllUsers() {
 
-        return userRepo.findAll().stream().map(user->
-                UserDTO.builder()
-                        .id(user.getId())
-                        .username(user.getUsername())
-                        .isEnabled(user.isEnabled())
-                        .userInfo(user.getUserInfo() == null? new UserInfoDTO(): (UserInfoDTO.builder()
-                                .fullName(user.getUserInfo().getFullName())
-                                .organisation(user.getUserInfo().getOrganisation())
-                                .phoneNumber(user.getUserInfo().getPhoneNumber())
-                                .build()))
-                        .build()
-
+        return userRepo.findAll().stream().map(user-> createUserDTOFromUserEntity(user)
         ).collect(Collectors.toList());
     }
 
     @Override
     public List<ApplicationResponseDTO> getApplications(Long id) {
 
-        return userRepo.findById(id).get().getApplications().stream().map(app-> appService.buildAppRespDTO(app)
+        return userRepo.findById(id).get().getApplications().stream().map(app->  appService.buildAppRespDTO(app)
                 ).collect(Collectors.toList());
     }
 
@@ -152,6 +154,7 @@ public class UserServiceImpl implements UserService {
         StringBuilder builder = new StringBuilder("\nОбъекты которых нет в системе:");
 
         Application userApplication = new Application();
+
         userApplication.setCreationTime(LocalDateTime.now());
         userApplication.setApproved(false);
         userApplication.setObjectsToAdd(applicationRequestDTO.getObjectsToAdd().
@@ -181,9 +184,24 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void setUserStatus(Long id) {
+    public UserDTO getUserById(Long id) {
         User user = userRepo.findById(id).orElseThrow(()-> new UsernameNotFoundException("Пользователь не найден"));
-        user.setIsEnabled(true);
-        userRepo.save(user);
+
+        return createUserDTOFromUserEntity(user);
     }
+
+    private UserDTO createUserDTOFromUserEntity(User user) {
+        return UserDTO.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .role(user.getRole().name())
+                .isEnabled(user.isEnabled())
+                .userInfo(user.getUserInfo() == null? new UserInfoDTO(): (UserInfoDTO.builder()
+                        .fullName(user.getUserInfo().getFullName())
+                        .organisation(user.getUserInfo().getOrganisation())
+                        .phoneNumber(user.getUserInfo().getPhoneNumber())
+                        .build()))
+                .build();
+    }
+
 }

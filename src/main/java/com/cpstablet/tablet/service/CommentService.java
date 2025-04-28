@@ -40,7 +40,7 @@ public class CommentService {
                 userName(comDTO.getUserName()).
                 startDate(comDTO.getStartDate()).
                 //TODO: без проверки тупо пишем то что прилетело с фронта
-                endDatePlan(fromDateToString(LocalDate.parse(comDTO.getStartDate(), formatter).plusDays(10).toString())).
+                endDatePlan(comDTO.getEndDatePlan()).
 
                 endDateFact((comDTO.getEndDateFact().equals(" "))? " " : comDTO.getEndDateFact()).
 

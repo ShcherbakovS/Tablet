@@ -16,6 +16,9 @@ public class ApplicationResponseDTO {
     private Long id;
     private String username;
     private Long userId;
+    private String role;
+    private String organisation;
+    private String fullName;
     private List<CapitalCSDTO> objectsToAdd;
     private String description;
 

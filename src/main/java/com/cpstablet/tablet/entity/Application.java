@@ -16,24 +16,33 @@ import java.util.List;
 public class Application {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id")
     private Long id;
 
     @ManyToMany
     @JoinTable(
+
             name = "application_to_add",
-            joinColumns = @JoinColumn(name = "capitalcs_id"),
-            inverseJoinColumns = @JoinColumn(name = "capitalcs-id")
+            joinColumns = @JoinColumn(name = "application_id"),
+            inverseJoinColumns = @JoinColumn(name = "capitalcs_id")
 
     )
     List<CapitalCS> objectsToAdd;
 
+    @ManyToMany
+    @JoinTable(
+            name = "added_objects",
+            joinColumns = @JoinColumn(name = "application_id"),
+            inverseJoinColumns = @JoinColumn(name = "capitalcs_id")
+    )
+   List<CapitalCS> addedObjects;
+
     private String description;
 
     private LocalDateTime creationTime;
+
     @ManyToOne
-    @MapsId
     @JoinColumn(name = "user_id")
     private User user;
 

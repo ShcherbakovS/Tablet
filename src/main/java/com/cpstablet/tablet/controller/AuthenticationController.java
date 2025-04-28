@@ -5,6 +5,7 @@ import com.cpstablet.tablet.DTO.sesurityDTO.LoginRequestDTO;
 import com.cpstablet.tablet.DTO.sesurityDTO.RegistrationRequestDTO;
 import com.cpstablet.tablet.service.AuthenticationService;
 import com.cpstablet.tablet.service.UserService;
+import com.cpstablet.tablet.service.mail.MailService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,6 +13,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.MailException;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -33,7 +35,7 @@ public class AuthenticationController {
 
         RegistrationRequestDTO dto = myMapper.readValue(request,RegistrationRequestDTO.class);
 
-        System.out.println(dto + " запрос на регичтрацию");
+        System.out.println(dto + " запрос на регистрацию");
 
         if(userService.existsByUsername(dto.getEmail())) {
             return ResponseEntity.badRequest().body("Имя пользователя занято");
@@ -41,9 +43,7 @@ public class AuthenticationController {
         if (userService.existsByEmail(dto.getEmail())) {
             return ResponseEntity.badRequest().body("Пользователь с таким Email уже сущетствует");
         }
-
         authService.registration(dto);
-
 
         return ResponseEntity.ok().body("Регистрация прошла успешно");
     }

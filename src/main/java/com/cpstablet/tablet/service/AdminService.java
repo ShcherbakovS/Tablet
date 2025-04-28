@@ -1,6 +1,8 @@
 package com.cpstablet.tablet.service;
 
 import com.cpstablet.tablet.DTO.ApplicationResponseDTO;
+import com.cpstablet.tablet.entity.Application;
+import com.cpstablet.tablet.entity.User;
 import com.cpstablet.tablet.repository.ApplicationRepo;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,8 +21,17 @@ public class AdminService {
 
     public HttpStatus setObjectsToUser(Long id, List<String> objects) {
 
+        // TODO: необходимо забирать айди заявки по нему вытаскивать заявку -> пользователя, редактировать саму заявку
+        // * Редактировать заявку.
+        // * Редактировать список объуктов
 
-        objects.stream().forEach(objectCode -> userService.setObjectToAllowed(id,objectCode));
+        Application userApp = appRepo.findById(id).orElseThrow(()-> new RuntimeException("Заявка не найдена"));
+
+        User user = userApp.getUser();
+
+        objects.stream().forEach(objectCode -> userService.setObjectToAllowed(user.getId(), objectCode));
+
+
 
         return HttpStatus.OK;
     }
@@ -31,9 +42,13 @@ public class AdminService {
         ).collect(Collectors.toList());
 
     }
-
+// TODO: не передаю организацию при необходимости добавить
     public ApplicationResponseDTO getApplication(Long id) {
+        System.out.println("Айди заявки пользователя " + id );
         return appService.buildAppRespDTO(appRepo.findById(id).orElseThrow(()-> new RuntimeException("Заявка не найдена")));
 
+    }
+    public void deleteApps() {
+        appRepo.deleteAll();
     }
 }

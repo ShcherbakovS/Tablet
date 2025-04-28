@@ -9,6 +9,8 @@ import com.cpstablet.tablet.service.ApplicationService;
 import com.cpstablet.tablet.service.UserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
@@ -54,7 +56,10 @@ public class UserController {
     @PostMapping("/createApplication/{id}")
     @PreAuthorize("hasRole('USER')")
     public HttpStatus createApplication(@RequestBody String userApplication,
-                                        @PathVariable("id") Long id) throws JsonProcessingException {
+                                        @PathVariable("id") Long id,
+                                        @RequestHeader("Authorization") String token) throws JsonProcessingException {
+
+
         System.out.println(userApplication);
         return userService.createApplication(myMapper.readValue(userApplication, ApplicationRequestDTO.class), id);
     }

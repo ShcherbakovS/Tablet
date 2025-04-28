@@ -17,7 +17,7 @@ public interface UserService extends UserDetailsService {
     boolean existsByEmail(String email);
     ResponseEntity deleteByUserId(Long userId);
 
-    ResponseEntity setUserRole(Long userId);
+    ResponseEntity setUserRole(Long userId, String role);
 
     List<CapitalCSDTO> getAllowedObjects(Long id);
 
@@ -31,5 +31,6 @@ public interface UserService extends UserDetailsService {
 
     HttpStatus createApplication(ApplicationRequestDTO applicationRequestDTO, Long id);
 
-    void setUserStatus(Long id);
+    UserDTO getUserById(Long id);
+
 }
