@@ -140,7 +140,6 @@ public class CommentService {
 
        StringBuilder buildDate = new StringBuilder();
 
-       //TODO: ноль пишется пр редактировании
        buildDate.append(sourceDate.getDayOfMonth()< 10?  "0" + sourceDate.getDayOfMonth(): sourceDate.getDayOfMonth())
                .append(".")
                .append(sourceDate.getMonthValue()< 10? "0" + sourceDate.getMonthValue(): sourceDate.getMonthValue())

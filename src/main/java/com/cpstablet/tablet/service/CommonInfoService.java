@@ -95,12 +95,18 @@ public class CommonInfoService {
     }
     public List<SubobjectCommonInfDTO> structureCommonInf(String CCSCode) {
 
+       subObjectRepo.findByCCSCode(CCSCode).stream().map(e-> getSubObjectCommonInfDTO(e))
+                .forEach(System.out::println);
+
         return subObjectRepo.findByCCSCode(CCSCode).stream().map(e-> getSubObjectCommonInfDTO(e)).sorted(
                 Comparator.comparing(SubobjectCommonInfDTO::getId)).collect(Collectors.toList());
+
     }
     private SubobjectCommonInfDTO getSubObjectCommonInfDTO(SubObject subObject) {
 
-       List<SystemCommonInfDTO> systems = systemRepo.getAllByCCSNumber(subObject.getCCSCode()).
+        // TODO ощибка в формировании списка- формировать через связанные сущности подобъекта, а не акта КО напрямую получаем дублирование в списке
+
+       List<SystemCommonInfDTO> systems = subObject.getPNRSystems().
                stream().filter(e -> e.getPNRSystemKO().equals(subObject.getNumberKO())).map( e -> SystemCommonInfDTO.builder().
                        PNRSystemId(e.getPNRSystemId()).
                        numberII(e.getPNRSystemII()).
@@ -109,8 +115,9 @@ public class CommonInfoService {
                        CWExecutor(e.getCWExecutor()).
                        status(e.getPNRSystemStatus()).
                        comments(commentRepo.findCommentsByCodeCCS(subObject.getCCSCode()).stream()
-                               .filter(o -> o.getIiNumber().equals(e.getPNRSystemII())).filter(o-> !o.getEndDatePlan().equals(" ")).count()).
+                               .filter(o -> o.getIiNumber().equals(e.getPNRSystemII())).filter(o-> o.getCommentStatus().contains("Не устранено")).count()).
                        build()).sorted(Comparator.comparing(SystemCommonInfDTO::getPNRSystemId)).collect(Collectors.toList());
+
 
        return SubobjectCommonInfDTO.builder().
                id(subObject.getSubObjectId()).
@@ -122,6 +129,7 @@ public class CommonInfoService {
                status(subObject.getStatus()).
                data(systems).
                build();
+
     }
     public SystemCommonInfDTO getSystemCommonInfo(Long id) {
 

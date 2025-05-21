@@ -3,6 +3,7 @@ package com.cpstablet.tablet.controller;
 import com.cpstablet.tablet.DTO.CapitalCSDTO;
 import com.cpstablet.tablet.entity.CapitalCS;
 import com.cpstablet.tablet.entity.User;
+import com.cpstablet.tablet.repository.UserRepo;
 import com.cpstablet.tablet.service.CapitalCSService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -25,6 +26,7 @@ import java.util.List;
 public class CapitalCSController {
 
     private final CapitalCSService capitalService;
+
 
     @Qualifier("myMapper")
     private final ObjectMapper myMapper;
@@ -57,10 +59,16 @@ public class CapitalCSController {
             return new ResponseEntity(capitalService.findCCS(codeCCS), HttpStatus.OK);
     }
 
-    @GetMapping("/getAll")
-    public  ResponseEntity<List<CapitalCS>> getAll() {
+    @GetMapping("/getAll/{userId}")
+    public  ResponseEntity<List<CapitalCS>> getFilteredBuUserId(@PathVariable Long userId) {
+        return new ResponseEntity<>(capitalService.filteredByUserId(userId), HttpStatus.OK);
+    }
 
-        return new ResponseEntity<>(capitalService.findAll(), HttpStatus.OK);
+    @GetMapping("/getAll")
+    public  ResponseEntity<List<CapitalCS>> getAll(@PathVariable(required = false) Long userId) {
+
+            return new ResponseEntity<>(capitalService.findAll(), HttpStatus.OK);
+
     }
 
     @GetMapping("/getApprovedFacilities/{username}")

@@ -20,6 +20,7 @@ public class ApplicationResponseDTO {
     private String organisation;
     private String fullName;
     private List<CapitalCSDTO> objectsToAdd;
+    private List<CapitalCSDTO> addedObjects;
     private String description;
 
 }

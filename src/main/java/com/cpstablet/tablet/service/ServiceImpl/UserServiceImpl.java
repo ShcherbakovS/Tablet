@@ -24,7 +24,6 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepo userRepo;
     private final CapitalCSRepo capitalCSRepo;
-
     private final ApplicationService appService;
 
     @Override
@@ -149,6 +148,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public HttpStatus createApplication(ApplicationRequestDTO applicationRequestDTO, Long id) {
+
         System.out.println("Пользователь создание запроса");
         StringBuilder defaultValueForDescription = new StringBuilder(applicationRequestDTO.getDescription());
         StringBuilder builder = new StringBuilder("\nОбъекты которых нет в системе:");

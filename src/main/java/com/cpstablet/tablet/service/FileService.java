@@ -7,6 +7,8 @@ import com.cpstablet.tablet.repository.PhotoRepo;
 import com.cpstablet.tablet.repository.SubObjectRepo;
 import com.cpstablet.tablet.repository.SystemRepo;
 import lombok.AllArgsConstructor;
+import net.coobird.thumbnailator.Thumbnails;
+import org.apache.poi.hpsf.Thumbnail;
 import org.apache.poi.openxml4j.util.ZipSecureFile;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
@@ -18,12 +20,16 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
+import java.sql.SQLOutput;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,6 +38,7 @@ public class FileService {
     private final SubObjectRepo subObjectRepo;
     private final SystemRepo systemRepo;
     private final PhotoRepo photoRepo;
+
 
     // загрузка структуры ОКС (подобъекты, системы)
     public void uploadStructure(MultipartFile file, String CCSCode) throws IOException {
@@ -45,6 +52,8 @@ public class FileService {
 
         Row checkRow = sheet.getRow(9);
 
+        DataFormatter df = new DataFormatter();
+
 
         if (!checkDocument(checkRow)) {
 
@@ -52,51 +61,63 @@ public class FileService {
 
         } else {
             if(!systemRepo.getAllByCCSNumber(CCSCode).isEmpty()) {
-                systemRepo.deleteAllByCCSCode(CCSCode);
                 subObjectRepo.deleteAllByCCSCode(CCSCode);
+                systemRepo.deleteAllByCCSCode(CCSCode);
             }
+            System.out.println(sheet.getLastRowNum() + " индекс последней строки");
 
-            for (int i = 10; i <= sheet.getLastRowNum() -1; i++) {
-                if (sheet.getRow(i) != null) {
+            for (int i = 10; i <= sheet.getLastRowNum(); i++) {
+                if (sheet.getRow(i) != null && sheet.getRow(i).getCell(4) != null &&
+                        !df.formatCellValue(sheet.getRow(i).getCell(4)).equals("")) {
                     subObjectCreate(sheet.getRow(i), CCSCode);
                 }
             }
-
-            for (int i = 10; i <= sheet.getLastRowNum() -1; i++) {
-                if (sheet.getRow(i) != null) {
+            for (int i = 10; i <= sheet.getLastRowNum(); i++) {
+                if (sheet.getRow(i) != null && sheet.getRow(i).getCell(4) != null &&
+                        !df.formatCellValue(sheet.getRow(i).getCell(4)).equals("")) {
                     systemCreate(sheet.getRow(i), CCSCode);
                 }
             }
+
+
         }
     }
 
     private void subObjectCreate(Row row, String CCSCode) {
 
-        List<String> checkKONumber = subObjectRepo.findByCCSCode(CCSCode).stream().map(SubObject::getNumberKO).collect(Collectors.toList());
+        //переписать проверку наименования подобьекта
+
+        Map<String, String> checkKONumber = subObjectRepo.findByCCSCode(CCSCode).stream()
+                .collect(Collectors.toMap(s-> s.getSubObjectName(), s-> s.getNumberKO()));
 
         DataFormatter df = new DataFormatter();
 
-        if (!checkKONumber.contains(df.formatCellValue(row.getCell(5)))) {
+        if (!checkKONumber.containsKey(df.formatCellValue(row.getCell(1)))) {
 
-            subObjectRepo.save(SubObject.builder().
+
+            SubObject subObject = SubObject.builder().
                     subObjectName(df.formatCellValue(row.getCell(1))).
                     numberKO(df.formatCellValue(row.getCell(5))).
                     CCSCode(CCSCode).
                     status(" ").
-                    build());
+                    PNRSystems(new ArrayList<>()).
+                    build();
 
-//            if(Integer.valueOf(so.getNumberKO()).intValue() != 0) {
-//                subObjectRepo.save(so);
-//            }
+            subObjectRepo.save(subObject);
         }
     }
 
-    private void systemCreate(Row row, String CCSCode) {
+    private PNRSystem systemCreate(Row row, String CCSCode) {
 
         DataFormatter df = new DataFormatter();
 
+        SubObject subObject = subObjectRepo.findBySubObjectName(df.formatCellValue(row.getCell(1))).get();
+
+        System.out.println(subObject.getSubObjectName() + " ИМЯ ПОДОБЪЕКТА");
+
         if (row.getCell(0) != null) {
-            systemRepo.save(PNRSystem.builder().
+
+            subObject.getPNRSystems().add(PNRSystem.builder().
                     PNRSystemName(df.formatCellValue(row.getCell(CellReference.convertColStringToIndex("C")))).
                     PNRSystemRD(df.formatCellValue(row.getCell(CellReference.convertColStringToIndex("D")))).
                     PNRSystemII(df.formatCellValue(row.getCell(CellReference.convertColStringToIndex("E")))).
@@ -112,29 +133,50 @@ public class FileService {
                     CIWExecutor("Не определён").
                     CWExecutor("Не определён").
                     build());
+            subObject.getPNRSystems().stream().map(s-> s.getPNRSystemII()).forEach(System.out::println);
+
+            subObjectRepo.save(subObject);
         }
+        return null;
     }
 
     public void uploadPhotos(MultipartFile file, Long id) throws IOException {
-        System.out.println(file.getContentType() + "\n " + file.getOriginalFilename() + "\n " + file.getSize());
-        photoRepo.save(Photo.builder().
+
+        System.out.println("Размер исходного файла " + file.getSize());
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+// Сжимаем полученный файл
+        Thumbnails.of(file.getInputStream())
+                .size(800, 600)  // TODO: проверить на фронте размерность и сжатие после загрузки необходимость корректировки
+                .outputFormat("jpg")
+                .outputQuality(0.5)
+                .keepAspectRatio(true)
+                .toOutputStream(baos);
+
+
+        Photo toSave = photoRepo.save(Photo.builder().
                 fileName(file.getName()).
                 contentType(file.getContentType()).
-                size(file.getSize()).
-                bytes(file.getBytes()).
+                size((long)baos.size()).
+                bytes(baos.toByteArray()).
                 commentId(id).
                 build());
+        System.out.println("Размер сохраненного фото " + toSave.getSize());
     }
 
     public Photo getPhotosByCommentId(Long id) {
 
-        return photoRepo.getPhotoByCommentId(id);
+        Photo toSend = photoRepo.getPhotoByCommentId(id);
+
+        System.out.println(toSend.getSize());
 
 //        return  ResponseEntity.ok().
 //                header("fileName").contentType(MediaType.IMAGE_JPEG).
 //                contentLength(photo.getSize()).body(
 //                        new InputStreamResource(new ByteArrayInputStream(photo.getBytes()))
 //                );
+        return toSend;
     }
 
     public HttpStatus deletePhoto(Long id) {

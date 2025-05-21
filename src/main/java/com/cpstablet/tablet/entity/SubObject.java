@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Entity
 @Data
 @AllArgsConstructor
@@ -21,6 +23,9 @@ public class SubObject {
     private String subObjectName;
 
     private String numberKO;
+
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<PNRSystem> PNRSystems;
 
     private String status;
 

@@ -1,9 +1,6 @@
 package com.cpstablet.tablet.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
 
 
@@ -32,5 +29,10 @@ public class PNRSystem {
     private String KOFactDate;
     private String CIWExecutor;
     private String CWExecutor;
+
+    // TODO Миграция ликви
+    @ManyToOne
+    @JoinColumn(name = "subObjectId")
+    private SubObject subObject;
 
 }

@@ -43,22 +43,10 @@ public class ApplicationService {
                 .role(user.getRole().name())
                 .organisation(user.getUserInfo().getOrganisation())
                 .description(app.getDescription())
-                .objectsToAdd(app.getObjectsToAdd().stream().map(obj->
-                        CapitalCSDTO.builder()
-                                .capitalCSName(obj.getCapitalCSName())
-                                .codeCCS(obj.getCodeCCS())
-                                .locationRegion(obj.getLocationRegion())
-                                .objectType(obj.getObjectType())
-                                .customer(obj.getCustomer())
-                                .CIWExecutor(obj.getCIWExecutor())
-                                .CWExecutor(obj.getCWExecutor())
-                                .customerSupervisor(obj.getCustomerSupervisor())
-                                .CWSupervisor(obj.getCWSupervisor())
-                                .CIWSupervisor(obj.getCIWSupervisor())
-                                .build() ).collect(Collectors.toList()))
+                .objectsToAdd(app.getObjectsToAdd().stream().map(obj-> createDTO(obj) ).collect(Collectors.toList()))
+                .addedObjects(app.getAddedObjects().isEmpty() ? null : app.getAddedObjects().stream().map(obj-> createDTO(obj) ).collect(Collectors.toList()))
                 .description(app.getDescription())
                 .build();
-
     }
     public void changeObjectsList(Long id, List<CapitalCS> capitals) {
 
@@ -69,11 +57,24 @@ public class ApplicationService {
                 application.getAddedObjects().add(o);}
             );
         }
-
-
     }
 
     public List<RegistrationApplication> getRegApps() {
         return regAppRepo.findAll();
+    }
+    private CapitalCSDTO createDTO(CapitalCS capitalCSDTO) {
+
+           return CapitalCSDTO.builder()
+                .capitalCSName(capitalCSDTO.getCapitalCSName())
+                .codeCCS(capitalCSDTO.getCodeCCS())
+                .locationRegion(capitalCSDTO.getLocationRegion())
+                .objectType(capitalCSDTO.getObjectType())
+                .customer(capitalCSDTO.getCustomer())
+                .CIWExecutor(capitalCSDTO.getCIWExecutor())
+                .CWExecutor(capitalCSDTO.getCWExecutor())
+                .customerSupervisor(capitalCSDTO.getCustomerSupervisor())
+                .CWSupervisor(capitalCSDTO.getCWSupervisor())
+                .CIWSupervisor(capitalCSDTO.getCIWSupervisor())
+                .build();
     }
 }
