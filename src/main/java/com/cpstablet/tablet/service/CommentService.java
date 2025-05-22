@@ -132,22 +132,7 @@ public class CommentService {
         }
         return HttpStatus.NOT_FOUND;
     }
-    private String fromDateToString(String date) {
 
-       var sourceDate =  LocalDate.parse(date);
-
-        System.out.println(sourceDate.getDayOfMonth() + " ДЕНЬ МЕСЯЦА ПРОВЕРКА!!!" );
-
-       StringBuilder buildDate = new StringBuilder();
-
-       buildDate.append(sourceDate.getDayOfMonth()< 10?  "0" + sourceDate.getDayOfMonth(): sourceDate.getDayOfMonth())
-               .append(".")
-               .append(sourceDate.getMonthValue()< 10? "0" + sourceDate.getMonthValue(): sourceDate.getMonthValue())
-               .append(".")
-               .append(sourceDate.getYear());
-
-       return buildDate.toString();
-    }
     public void checkExecutor(String CIWExecutor, String IINumber) {
 
         if (commentRepo.findCommentByIiNumber(IINumber).isEmpty()) {

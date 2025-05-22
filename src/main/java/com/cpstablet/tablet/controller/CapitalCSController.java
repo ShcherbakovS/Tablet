@@ -2,8 +2,6 @@ package com.cpstablet.tablet.controller;
 
 import com.cpstablet.tablet.DTO.CapitalCSDTO;
 import com.cpstablet.tablet.entity.CapitalCS;
-import com.cpstablet.tablet.entity.User;
-import com.cpstablet.tablet.repository.UserRepo;
 import com.cpstablet.tablet.service.CapitalCSService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,8 +10,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import javax.naming.Context;
@@ -40,7 +36,6 @@ public class CapitalCSController {
             return capitalService.create(myMapper.readValue(jsonString, CapitalCSDTO.class));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
-
         }
     }
     @PutMapping("/updateCapitalCS/{id}")
@@ -56,7 +51,7 @@ public class CapitalCSController {
 
     @GetMapping("/findByCodeCCS/{codeCCS}")
     public ResponseEntity<CapitalCS> getByCodeCCS(@PathVariable("codeCCS") String codeCCS) {
-            return new ResponseEntity(capitalService.findCCS(codeCCS), HttpStatus.OK);
+            return new ResponseEntity<>(capitalService.findCCS(codeCCS), HttpStatus.OK);
     }
 
     @GetMapping("/getAll/{userId}")
@@ -65,15 +60,13 @@ public class CapitalCSController {
     }
 
     @GetMapping("/getAll")
-    public  ResponseEntity<List<CapitalCS>> getAll(@PathVariable(required = false) Long userId) {
-
+    public  ResponseEntity<List<CapitalCS>> getAll() {
             return new ResponseEntity<>(capitalService.findAll(), HttpStatus.OK);
 
     }
 
     @GetMapping("/getApprovedFacilities/{username}")
     public ResponseEntity<List<CapitalCSDTO>> getUserApprovedCapitalCCS(@PathVariable("username") String userId) {
-        //
         return null;
     }
 

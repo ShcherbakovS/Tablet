@@ -63,7 +63,7 @@ public class AdminToolsController {
     @GetMapping("/getApplications")
     @PreAuthorize("hasAuthority('ADMIN')")
     public List<ApplicationResponseDTO> getApplications() {
-        System.out.println("В методе");
+
         return adminService.getApplications();
     }
     @GetMapping("/getApplication/{id}")

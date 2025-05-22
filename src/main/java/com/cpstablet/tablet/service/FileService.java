@@ -111,7 +111,7 @@ public class FileService {
 
         DataFormatter df = new DataFormatter();
 
-        SubObject subObject = subObjectRepo.findBySubObjectName(df.formatCellValue(row.getCell(1))).get();
+        SubObject subObject = subObjectRepo.findBYCCSCodeAndSubObjectName(CCSCode,df.formatCellValue(row.getCell(1)));
 
         System.out.println(subObject.getSubObjectName() + " ИМЯ ПОДОБЪЕКТА");
 

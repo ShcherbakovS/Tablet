@@ -2,6 +2,8 @@ package com.cpstablet.tablet.service;
 
 import com.cpstablet.tablet.DTO.PNRSystemDTO;
 import com.cpstablet.tablet.entity.PNRSystem;
+import com.cpstablet.tablet.entity.SubObject;
+import com.cpstablet.tablet.repository.SubObjectRepo;
 import com.cpstablet.tablet.repository.SystemRepo;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,6 +21,8 @@ public class SystemService {
     @Value("${check.emptyValue}")
     static String checkValue;  //TODO: КОСТЫЛЬ с фронта для проверки даты, переписан в проперти
     private final SystemRepo systemRepo;
+
+    private final SubObjectRepo subObjectRepo;
     private final CommentService commentService;
     private final SubObjectService subObjectService;
 
@@ -71,8 +75,24 @@ public class SystemService {
 
         systemRepo.save(toUpdate);
 
-        System.out.println("Поле сущности в БД:");
-        System.out.println(toUpdate.getPNRSystemStatus());
+        //TODO если в системе проставлены планы и факты КО присваивать значения остальным автоматически
+
+        if(!systemDTO.getKOPlanDate().equals(" ")) {
+            SubObject subObject = subObjectRepo.findByCCSCode(toUpdate.getCCSNumber()).get(0);
+            subObject.getPNRSystems().forEach(s-> s.setKOPlanDate(systemDTO.getKOPlanDate()));
+            subObjectRepo.save(subObject);
+        }
+        if(!systemDTO.getKOFactDate().equals(" ")) {
+            SubObject subObject = subObjectRepo.findByCCSCode(toUpdate.getCCSNumber()).get(0);
+            subObject.getPNRSystems().forEach(s-> s.setKOFactDate(systemDTO.getKOFactDate()));
+            subObjectRepo.save(subObject);
+
+            SubObject subObject1 = subObjectRepo.findByCCSCode(toUpdate.getCCSNumber()).get(0);
+            subObject1.getPNRSystems().stream().forEach(sys-> {
+                sys.setKOFactDate(systemDTO.getKOFactDate());
+                systemRepo.save(sys);
+            });
+        }
 
 
         subObjectService.checkStatus(id);

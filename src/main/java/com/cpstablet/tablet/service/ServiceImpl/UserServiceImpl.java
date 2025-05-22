@@ -6,6 +6,7 @@ import com.cpstablet.tablet.repository.CapitalCSRepo;
 import com.cpstablet.tablet.repository.UserRepo;
 import com.cpstablet.tablet.service.ApplicationService;
 import com.cpstablet.tablet.service.UserService;
+import com.cpstablet.tablet.service.mail.MailService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +26,8 @@ public class UserServiceImpl implements UserService {
     private final UserRepo userRepo;
     private final CapitalCSRepo capitalCSRepo;
     private final ApplicationService appService;
+
+    private final MailService mailService;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -70,6 +73,7 @@ public class UserServiceImpl implements UserService {
                 ()-> new UsernameNotFoundException("Пользователь не найден")
         );
 
+
         switch (role) {
             case "NONE":
                 user.setRole(Role.NONE);
@@ -86,6 +90,12 @@ public class UserServiceImpl implements UserService {
         }
 
         userRepo.save(user);
+
+        if(user.getIsFirstRegistered()) {
+            mailService.sendEmail(user);
+            user.setIsFirstRegistered(false);
+            userRepo.save(user);
+        }
 
         return ResponseEntity.ok().body("Пользователю " + user.getUserInfo().getFullName() + " присвоена роль " + user.getRole());
     }

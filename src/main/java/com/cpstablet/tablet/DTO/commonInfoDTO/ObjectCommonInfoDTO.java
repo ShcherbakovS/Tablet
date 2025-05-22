@@ -27,6 +27,10 @@ public class ObjectCommonInfoDTO {
     private Long defectiveActsNotResolvedQuantity;
     private Long busyStaff;
 
+    private Long systemsLag;
+    private Long actsIILag;
+    private Long actsKOLag;
+    private Long commentsLag;
 
 
 }

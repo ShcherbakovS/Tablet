@@ -24,11 +24,8 @@ public class SubObjectService {
 
     public void checkStatus(Long systemID)  {
 
-        System.out.println("here we are!");
 
        PNRSystem system = systemRepo.findByPNRSystemId(systemID);
-
-        System.out.println("system " + system.getPNRSystemName());
 
        Set<String> statuses = systemRepo.getAllByCCSNumber(system.getCCSNumber()).stream().
                filter(s -> s.getPNRSystemKO().equals(system.getPNRSystemKO())).

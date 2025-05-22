@@ -13,12 +13,10 @@ public interface CommentRepo extends JpaRepository<Comment, Long> {
 
     Comment findCommentByCommentId(Long id);
     List<Comment> findCommentsByCodeCCS(String codeCCS);
+
     Optional<Comment> findByCommentId(Long id);
     List<Comment> findAll();
 
     List<Comment> findCommentByIiNumber(String IINumber);
-
-
-
 
 }

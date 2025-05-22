@@ -48,6 +48,7 @@ public class AuthenticationService {
         user.setUsername(registration.getEmail());
         user.setEmail(registration.getEmail());
         user.setPassword(passwordEncoder.encode(registration.getPassword()));
+        user.setIsFirstRegistered(true);
         if (registration.getEmail().equals("main_admin")){
             user.setRole(Role.ADMIN);
             user.setIsEnabled(true);

@@ -31,6 +31,9 @@ public class User implements UserDetails {
     private String password;
     @Column(name = "is_enabled")
     private Boolean isEnabled;
+
+    @Column(name = "is_first_registered")
+    private Boolean isFirstRegistered;
     @Enumerated(EnumType.STRING)
     private Role role;
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)

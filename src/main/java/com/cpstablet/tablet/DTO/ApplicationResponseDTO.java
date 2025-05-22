@@ -19,6 +19,7 @@ public class ApplicationResponseDTO {
     private String role;
     private String organisation;
     private String fullName;
+    private String creationTime;
     private List<CapitalCSDTO> objectsToAdd;
     private List<CapitalCSDTO> addedObjects;
     private String description;

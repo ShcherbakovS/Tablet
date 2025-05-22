@@ -13,6 +13,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -38,7 +39,7 @@ public class CommonInfoService {
 
         //TODO: динамику рассчитывать за семь дней, возможно добавить фильтрацию по мониторингу дат (текущая - 7)
 
-        return ObjectCommonInfoDTO.builder().
+        ObjectCommonInfoDTO dto = ObjectCommonInfoDTO.builder().
                 // принято в ПНР всего
                 systemsPNRTotalQuantity(
                         (long) PNRSystems.size()
@@ -50,7 +51,8 @@ public class CommonInfoService {
                         PNRSystems.stream().filter(e-> e.getPNRSystemStatus().contains("Ведутся ПНР")).count() +
                         PNRSystems.stream().filter(e-> e.getPNRSystemStatus().contains("Проведены ИИ")).count() +
                         PNRSystems.stream().filter(e-> e.getPNRSystemStatus().contains("Акт ИИ подписан")).count() +
-                        PNRSystems.stream().filter(e-> e.getPNRSystemStatus().contains("Акт ИИ на подписи")).count() + PNRSystems.stream().filter(e-> e.getPNRSystemStatus().contains("Проведено КО")).count() +
+                        PNRSystems.stream().filter(e-> e.getPNRSystemStatus().contains("Акт ИИ на подписи")).count() +
+                        PNRSystems.stream().filter(e-> e.getPNRSystemStatus().contains("Проведено КО")).count() +
                         PNRSystems.stream().filter(e-> e.getPNRSystemStatus().contains("Акт КО на подписи")).count() +
                         PNRSystems.stream().filter(e-> e.getPNRSystemStatus().contains("Акт КО подписан")).count() +
                         PNRSystems.stream().filter(e-> e.getPNRSystemStatus().contains("Проводится КО")).count()
@@ -85,6 +87,8 @@ public class CommonInfoService {
                         count()).
                 commentsTotalQuantity(comments.stream().count()).
                 commentsNotResolvedQuantity(comments.stream().filter(e-> e.getCommentStatus().contains("Не устранено")).count()).
+
+                systemsLag(systemsLagCount(PNRSystems)).
                 // нулевой показатель нет логики для дефектов
                 defectiveActsTotalQuantity(0L).
                 // нулевой показатель нет логики для дефектов
@@ -92,7 +96,15 @@ public class CommonInfoService {
                 // нулевой показатель нет логики для подсчета персонала
                 busyStaff(0L).
                 build();
+
+        dto.setSystemsLag(systemsLagCount(PNRSystems));
+        dto.setActsIILag(actsIILagCount(PNRSystems));
+        dto.setActsKOLag(actsKOLagCount(subObjects));
+        dto.setCommentsLag(commentsLagCount(comments));
+
+        return dto;
     }
+
     public List<SubobjectCommonInfDTO> structureCommonInf(String CCSCode) {
 
        subObjectRepo.findByCCSCode(CCSCode).stream().map(e-> getSubObjectCommonInfDTO(e))
@@ -142,7 +154,8 @@ public class CommonInfoService {
                 systemName(PNRSystem.getPNRSystemName()).
                 comments(commentRepo.findCommentsByCodeCCS(PNRSystem.getCCSNumber()).
                         stream().
-                        filter(e-> e.getIiNumber().equals(PNRSystem.getPNRSystemII())).count()).
+                        filter(e-> e.getIiNumber().equals(PNRSystem.getPNRSystemII())).
+                filter(comm-> comm.getCommentStatus().contains("Не устранено")).count()).
                 status(PNRSystem.getPNRSystemStatus()).
                 PNRPlanDate((PNRSystem.getPNRPlanDate() == null)? " " : PNRSystem.getPNRPlanDate()).
                 PNRFactDate((PNRSystem.getPNRFactDate() == null)? " " : PNRSystem.getPNRFactDate()).
@@ -191,5 +204,40 @@ public class CommonInfoService {
 
         return false;
      }
+    private boolean dateLag(String sourceDate) {
 
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+
+        LocalDate date = LocalDate.parse(sourceDate, formatter);
+
+        return date.isBefore(LocalDate.now());
+
+
+    }
+    // отставание от плана
+    private Long systemsLagCount(List<PNRSystem> systems) {
+
+        return systems.stream().filter(s-> !s.getPNRPlanDate().equals(" ")).filter(s-> dateLag(s.getPNRPlanDate())).count() -
+                systems.stream().filter(s-> !s.getPNRFactDate().equals(" ")).filter(s-> dateLag(s.getPNRFactDate())).count();
+    }
+    private Long actsIILagCount(List<PNRSystem> systems) {
+
+        return systems.stream().filter(s-> !s.getIIPlanDate().equals(" ")).filter(s-> dateLag(s.getIIPlanDate())).count() -
+                systems.stream().filter(s-> !s.getIIFactDate().equals(" ")).filter(s-> dateLag(s.getIIFactDate())).count();
+    }
+    private Long commentsLagCount(List<Comment> comments) {
+
+        return comments.stream().filter(comment-> !comment.getEndDatePlan().equals(" ")).filter(comment-> dateLag(comment.getEndDatePlan())).count() -
+                comments.stream().filter(comment-> !comment.getEndDateFact().equals(" ")).filter(comment-> dateLag(comment.getEndDateFact())).count();
+    }
+    private Long actsKOLagCount(List<SubObject> subObjects) {
+        if(!subObjects.isEmpty()) {
+            return subObjects.stream().map(sub -> sub.getPNRSystems().get(0)).filter(sys -> !sys.getKOPlanDate().equals(" "))
+                    .filter(sys -> dateLag(sys.getKOPlanDate())).count() - subObjects.stream().map(sub -> sub.getPNRSystems().get(0))
+                    .filter(sys -> !sys.getKOFactDate().equals(" ")).filter(sys -> dateLag(sys.getKOFactDate())).count();
+        }
+        System.out.println("Метод рассчета лага КО получил пустую коллекцию");
+
+        return 0L;
+    }
 }

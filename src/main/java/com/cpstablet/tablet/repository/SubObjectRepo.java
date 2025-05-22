@@ -13,12 +13,16 @@ import java.util.Optional;
 @Repository
 public interface SubObjectRepo extends JpaRepository<SubObject, Long> {
 
-    Optional<SubObject> findBySubObjectName(String name);
+    Optional<SubObject> findAllBySubObjectName(String name);
     List<SubObject> findByCCSCode(String CCSCode);
 
     @Transactional
     @Query("SELECT e FROM SubObject e WHERE e.CCSCode = :CCSCode AND e.numberKO = :KONumber")
     SubObject findBYCCSCodeAndKONumber(String CCSCode, String KONumber);
+
+    @Transactional
+    @Query("SELECT e FROM SubObject e WHERE e.CCSCode = :CCSCode AND e.subObjectName = :subObjectName")
+    SubObject findBYCCSCodeAndSubObjectName(String CCSCode, String subObjectName);
 
     @Transactional
     @Modifying

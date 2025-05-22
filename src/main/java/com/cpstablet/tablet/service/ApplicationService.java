@@ -13,6 +13,8 @@ import lombok.AllArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -46,6 +48,7 @@ public class ApplicationService {
                 .objectsToAdd(app.getObjectsToAdd().stream().map(obj-> createDTO(obj) ).collect(Collectors.toList()))
                 .addedObjects(app.getAddedObjects().isEmpty() ? null : app.getAddedObjects().stream().map(obj-> createDTO(obj) ).collect(Collectors.toList()))
                 .description(app.getDescription())
+                .creationTime(fromDateToString(app.getCreationTime()))
                 .build();
     }
     public void changeObjectsList(Long id, List<CapitalCS> capitals) {
@@ -76,5 +79,19 @@ public class ApplicationService {
                 .CWSupervisor(capitalCSDTO.getCWSupervisor())
                 .CIWSupervisor(capitalCSDTO.getCIWSupervisor())
                 .build();
+    }
+    private String fromDateToString(LocalDateTime sourceDate) {
+
+        System.out.println(sourceDate.getDayOfMonth() + " ДЕНЬ МЕСЯЦА ПРОВЕРКА!!!" );
+
+        StringBuilder buildDate = new StringBuilder();
+
+        buildDate.append(sourceDate.getDayOfMonth()< 10?  "0" + sourceDate.getDayOfMonth(): sourceDate.getDayOfMonth())
+                .append(".")
+                .append(sourceDate.getMonthValue()< 10? "0" + sourceDate.getMonthValue(): sourceDate.getMonthValue())
+                .append(".")
+                .append(sourceDate.getYear());
+
+        return buildDate.toString();
     }
 }
