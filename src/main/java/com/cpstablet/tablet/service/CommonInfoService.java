@@ -74,9 +74,9 @@ public class CommonInfoService {
                         .count()).
                 // АКТЫ КО ПОДСЧЕТ ПО НЕ ПО СИСТЕМАМ А ПОПОДЪОБЪЕКТАМ СТАТУСЫ ПЕРЕПРОВЕРИТЬ
                 actsKOTotalQuantity(
-                        (long) subObjects.size()
+                        subObjects.stream().map(sub-> sub.getNumberKO()).collect(Collectors.toSet()).stream().count()
                 ).
-                // актов КО подписано+
+                // актов КО подписано
 
                 actsKOSignedQuantity(
                         subObjects.stream().filter(e-> e.getStatus().contains("Акт КО подписан")).count()
@@ -85,8 +85,10 @@ public class CommonInfoService {
                 // динамика по КО неверная
                 actsKODynamic(systemRepo.getAllByStatus(CCSNumber, "Акт КО подписан").stream().filter(s-> checkDateToPeriod(s.getKOFactDate())).
                         count()).
+
                 commentsTotalQuantity(comments.stream().count()).
                 commentsNotResolvedQuantity(comments.stream().filter(e-> e.getCommentStatus().contains("Не устранено")).count()).
+                commentsDynamic(comments.stream().filter(com-> checkDateToPeriod(com.getEndDateFact())).count()).
 
                 systemsLag(systemsLagCount(PNRSystems)).
                 // нулевой показатель нет логики для дефектов
@@ -212,23 +214,22 @@ public class CommonInfoService {
 
         return date.isBefore(LocalDate.now());
 
-
     }
     // отставание от плана
     private Long systemsLagCount(List<PNRSystem> systems) {
 
-        return systems.stream().filter(s-> !s.getPNRPlanDate().equals(" ")).filter(s-> dateLag(s.getPNRPlanDate())).count() -
-                systems.stream().filter(s-> !s.getPNRFactDate().equals(" ")).filter(s-> dateLag(s.getPNRFactDate())).count();
+        return systems.stream().filter(s-> !s.getPNRPlanDate().equals(" ")).filter(s-> s.getPNRFactDate().equals(" "))
+                .filter(s-> dateLag(s.getPNRPlanDate())).count();
     }
     private Long actsIILagCount(List<PNRSystem> systems) {
 
-        return systems.stream().filter(s-> !s.getIIPlanDate().equals(" ")).filter(s-> dateLag(s.getIIPlanDate())).count() -
-                systems.stream().filter(s-> !s.getIIFactDate().equals(" ")).filter(s-> dateLag(s.getIIFactDate())).count();
+        return systems.stream().filter(s-> !s.getIIPlanDate().equals(" ")).filter(s-> s.getIIPlanDate().equals(" "))
+                .filter(s-> dateLag(s.getIIPlanDate())).count();
     }
     private Long commentsLagCount(List<Comment> comments) {
 
-        return comments.stream().filter(comment-> !comment.getEndDatePlan().equals(" ")).filter(comment-> dateLag(comment.getEndDatePlan())).count() -
-                comments.stream().filter(comment-> !comment.getEndDateFact().equals(" ")).filter(comment-> dateLag(comment.getEndDateFact())).count();
+        return comments.stream().filter(comment-> !comment.getEndDatePlan().equals(" ")).filter(comment-> comment.getEndDateFact().equals(" "))
+                .filter(comment-> dateLag(comment.getEndDatePlan())).count();
     }
     private Long actsKOLagCount(List<SubObject> subObjects) {
         if(!subObjects.isEmpty()) {

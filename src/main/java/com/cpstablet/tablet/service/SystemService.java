@@ -73,27 +73,23 @@ public class SystemService {
         toUpdate.setKOPlanDate(systemDTO.getKOPlanDate());
         toUpdate.setKOFactDate(systemDTO.getKOFactDate());
 
-        systemRepo.save(toUpdate);
+        PNRSystem system =systemRepo.save(toUpdate);
+
 
         //TODO если в системе проставлены планы и факты КО присваивать значения остальным автоматически
 
         if(!systemDTO.getKOPlanDate().equals(" ")) {
-            SubObject subObject = subObjectRepo.findByCCSCode(toUpdate.getCCSNumber()).get(0);
-            subObject.getPNRSystems().forEach(s-> s.setKOPlanDate(systemDTO.getKOPlanDate()));
+            SubObject subObject = subObjectRepo.findByCCSCode(system.getCCSNumber()).get(0);
+            System.out.println( subObject.getSubObjectName() + "РЕДАКТИРОВАНИЕ ДАТ ПЛАНА И ФАКТА ПО СИСТЕМАМ КО");
+            subObject.getPNRSystems().forEach(s-> s.setKOPlanDate(system.getKOPlanDate()));
             subObjectRepo.save(subObject);
         }
         if(!systemDTO.getKOFactDate().equals(" ")) {
             SubObject subObject = subObjectRepo.findByCCSCode(toUpdate.getCCSNumber()).get(0);
-            subObject.getPNRSystems().forEach(s-> s.setKOFactDate(systemDTO.getKOFactDate()));
+            System.out.println( subObject.getSubObjectName() + "РЕДАКТИРОВАНИЕ ДАТ ПЛАНА И ФАКТА ПО СИСТЕМАМ КО");
+            subObject.getPNRSystems().forEach(s-> s.setKOFactDate(system.getKOFactDate()));
             subObjectRepo.save(subObject);
-
-            SubObject subObject1 = subObjectRepo.findByCCSCode(toUpdate.getCCSNumber()).get(0);
-            subObject1.getPNRSystems().stream().forEach(sys-> {
-                sys.setKOFactDate(systemDTO.getKOFactDate());
-                systemRepo.save(sys);
-            });
         }
-
 
         subObjectService.checkStatus(id);
 
@@ -102,21 +98,13 @@ public class SystemService {
 
     }
 
-//    private void checkStatus(String status, PNRSystemDTO systemDTO, Long id)  {
-//
-//        PNRSystem system = systemRepo.findByPNRSystemId(id);
-//
-//        if(status.contains(" КО")) {
-//            systemRepo.getAllByCCSNumber(system.getCCSNumber()).stream().filter(s-> s.getPNRSystemKO().equals(system.getPNRSystemKO())).
-//                    forEach(s-> {s.setPNRSystemStatus(status);
-//                        s.setKOPlanDate(systemDTO.getKOPlanDate());
-//                        //проставить датц по всем системам КО
-//                        s.setKOFactDate(systemDTO.getKOFactDate());
-//                        systemRepo.save(system);});
-//        }
-//
-//        subObjectService.checkStatus(id);
-//    }
+    private void checkStatus(String status, PNRSystemDTO systemDTO, Long id)  {
+
+        PNRSystem system = systemRepo.findByPNRSystemId(id);
+
+
+        subObjectService.checkStatus(id);
+    }
 }
 
 

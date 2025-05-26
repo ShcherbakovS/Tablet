@@ -64,16 +64,22 @@ public class CapitalCSService {
         return HttpStatus.NOT_FOUND;
     }
 
-    public void  update(CapitalCSDTO readValue, Long id) {
+    public void  update(CapitalCSDTO dto, Long id) {
 
-        capitalCSRepo.save(CapitalCS.builder().
-            capitalCSId(id).
-            locationRegion(readValue.getLocationRegion()).
-            objectType(readValue.getObjectType()).
-            customer(readValue.getCustomer()).
-                CIWExecutor(readValue.getCIWExecutor()).
-                CWExecutor(readValue.getCWExecutor()).
-                build());
+        CapitalCS capital = capitalCSRepo.findById(id).orElseThrow(()-> new RuntimeException("Объекут не найден в системе"));
+
+        if(!dto.getCapitalCSName().equals(" ")) capital.setCapitalCSName(dto.getCapitalCSName());
+        if(!dto.getCIWExecutor().equals(" ")) capital.setCIWExecutor(dto.getCIWExecutor());
+        if(!dto.getCIWSupervisor().equals(" ")) capital.setCIWSupervisor(dto.getCIWSupervisor());
+        if(!dto.getCodeCCS().equals(" ")) capital.setCodeCCS(dto.getCodeCCS());
+        if(!dto.getCustomer().equals(" ")) capital.setCustomer(dto.getCustomer());
+        if(!dto.getCustomerSupervisor().equals(" ")) capital.setCustomerSupervisor(dto.getCustomerSupervisor());
+        if(!dto.getCWExecutor().equals(" ")) capital.setCWExecutor(dto.getCWExecutor());
+        if(!dto.getCWSupervisor().equals(" ")) capital.setCWSupervisor(dto.getCWSupervisor());
+        if(!dto.getLocationRegion().equals(" ")) capital.setLocationRegion(dto.getLocationRegion());
+        if(!dto.getObjectType().equals(" ")) capital.setObjectType(dto.getObjectType());
+
+        capitalCSRepo.save(capital);
 
     }
 
