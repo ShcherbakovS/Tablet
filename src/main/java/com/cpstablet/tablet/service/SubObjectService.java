@@ -31,9 +31,11 @@ public class SubObjectService {
                filter(s -> s.getPNRSystemKO().equals(system.getPNRSystemKO())).
                map(s -> s.getPNRSystemStatus()).collect(Collectors.toSet());
 
+
+
         System.out.println(statuses.size() + " statuses contains");
 
-        SubObject toUpdate = subObjectRepo.findBYCCSCodeAndKONumber(system.getCCSNumber(), system.getPNRSystemKO());
+        SubObject toUpdate = subObjectRepo.findBYCCSCodeAndSubObjectName(system.getCCSNumber(), system.getSubObject().getSubObjectName());
 
         System.out.println("subobjectName " + toUpdate.getSubObjectName());
 

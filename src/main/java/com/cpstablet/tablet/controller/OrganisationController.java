@@ -1,6 +1,5 @@
 package com.cpstablet.tablet.controller;
 
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;

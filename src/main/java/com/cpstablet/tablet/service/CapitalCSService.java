@@ -2,8 +2,12 @@ package com.cpstablet.tablet.service;
 
 
 import com.cpstablet.tablet.DTO.CapitalCSDTO;
+import com.cpstablet.tablet.DTO.CapitalCSInfoDTO;
 import com.cpstablet.tablet.entity.CapitalCS;
+import com.cpstablet.tablet.entity.CapitalCSInfo;
 import com.cpstablet.tablet.entity.User;
+import com.cpstablet.tablet.repository.ApplicationRepo;
+import com.cpstablet.tablet.repository.CapitalCSInfoRepo;
 import com.cpstablet.tablet.repository.CapitalCSRepo;
 import com.cpstablet.tablet.repository.UserRepo;
 import lombok.AllArgsConstructor;
@@ -18,12 +22,14 @@ import java.util.Set;
 public class CapitalCSService {
 
     private final CapitalCSRepo capitalCSRepo;
-
+    private final ApplicationRepo appRepo;
     private final UserRepo userRepo;
+    private final CapitalCSInfoRepo capitalCSInfoRepo;
 
 
     public HttpStatus create(CapitalCSDTO capitalDTO) {
 
+            CapitalCSInfo capitalCSInfo = capitalCSInfoRepo.save(new CapitalCSInfo());
 
            capitalCSRepo.save(CapitalCS.builder().
                     capitalCSName(capitalDTO.getCapitalCSName()).
@@ -37,7 +43,9 @@ public class CapitalCSService {
                     CWSupervisor(capitalDTO.getCWSupervisor()).
                     CIWSupervisor(capitalDTO.getCIWSupervisor()).
                     commentCounter(1L).
+                   capitalCSInfo(capitalCSInfo).
                     build());
+
             return HttpStatus.CREATED;
 
     }
@@ -56,7 +64,16 @@ public class CapitalCSService {
     public HttpStatus deleteCapitalCS(Long capitalCSId) {
 
         if(capitalCSRepo.findById(capitalCSId).isPresent()) {
-            capitalCSRepo.deleteById(capitalCSId);
+
+            CapitalCS capitalCS = capitalCSRepo.findById(capitalCSId).orElseThrow(()-> new RuntimeException("Объект строительства не найден"));
+
+            userRepo.findAll().stream().forEach(user-> user.getAllowedObjects().remove(capitalCS));
+            appRepo.findAll().stream().forEach(app-> {
+                app.getAddedObjects().remove(capitalCS);
+                app.getObjectsToAdd().remove(capitalCS);
+            });
+
+            capitalCSRepo.delete(capitalCS);
 
             return HttpStatus.OK;
         }
@@ -95,5 +112,20 @@ public class CapitalCSService {
         }
 
         return filteredCapitals;
+    }
+
+    public void updateCapitalCSInfo(CapitalCSInfo dto, Long id) {
+
+        CapitalCS capitalCS = capitalCSRepo.findById(id).orElseThrow(()-> new RuntimeException("Объект не найден"));
+
+        CapitalCSInfo info = capitalCS.getCapitalCSInfo();
+
+        info.setExecutiveDocsLink(dto.getExecutiveDocsLink());
+        info.setOperationalDocsLink(dto.getOperationalDocsLink());
+        info.setPreparatoryDocsLink(dto.getPreparatoryDocsLink());
+        info.setWorkingDocsLink(dto.getWorkingDocsLink());
+
+        capitalCSInfoRepo.save(info);
+
     }
 }

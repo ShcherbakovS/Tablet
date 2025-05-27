@@ -2,6 +2,7 @@ package com.cpstablet.tablet.controller;
 
 import com.cpstablet.tablet.DTO.CapitalCSDTO;
 import com.cpstablet.tablet.entity.CapitalCS;
+import com.cpstablet.tablet.entity.CapitalCSInfo;
 import com.cpstablet.tablet.service.CapitalCSService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -74,5 +75,15 @@ public class CapitalCSController {
     @PreAuthorize("hasRole('ADMIN')")
     public HttpStatus deleteCapitalCS(@PathVariable("id") Long id) {
         return capitalService.deleteCapitalCS(id);
+    }
+    @PutMapping("/updateCapitalCSInfo/{id}")
+
+    public HttpStatus updateCCSDocsInfo(@RequestBody String jsonString, @PathVariable("id") Long id) {
+        try {
+            capitalService.updateCapitalCSInfo(myMapper.readValue(jsonString, CapitalCSInfo.class), id);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        return HttpStatus.CREATED;
     }
 }

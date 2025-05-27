@@ -15,10 +15,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.time.format.DateTimeFormatter.ofPattern;
@@ -74,17 +71,19 @@ public class CommonInfoService {
                         .count()).
                 // АКТЫ КО ПОДСЧЕТ ПО НЕ ПО СИСТЕМАМ А ПОПОДЪОБЪЕКТАМ СТАТУСЫ ПЕРЕПРОВЕРИТЬ
                 actsKOTotalQuantity(
-                        subObjects.stream().map(sub-> sub.getNumberKO()).collect(Collectors.toSet()).stream().count()
+                        PNRSystems.stream().collect(Collectors.toCollection(()-> new TreeSet<>(Comparator.comparing(PNRSystem::getPNRSystemKO))))
+                                .stream().count()
                 ).
                 // актов КО подписано
 
                 actsKOSignedQuantity(
-                        subObjects.stream().filter(e-> e.getStatus().contains("Акт КО подписан")).count()
+                        PNRSystems.stream().filter(system-> !system.getKOFactDate().equals(" "))
+                                .collect(Collectors.toCollection(()-> new TreeSet<>(Comparator.comparing(PNRSystem::getPNRSystemKO)))).stream().count()
                         // все системы подобъекта имеют статус "Акт КО подписан"
                 ).
                 // динамика по КО неверная
-                actsKODynamic(systemRepo.getAllByStatus(CCSNumber, "Акт КО подписан").stream().filter(s-> checkDateToPeriod(s.getKOFactDate())).
-                        count()).
+                actsKODynamic(PNRSystems.stream().filter(system-> !system.getKOFactDate().equals(" ")).filter(system -> checkDateToPeriod(system.getKOFactDate()))
+                        .collect(Collectors.toCollection(()-> new TreeSet<>(Comparator.comparing(PNRSystem::getPNRSystemKO)))).stream().count()).
 
                 commentsTotalQuantity(comments.stream().count()).
                 commentsNotResolvedQuantity(comments.stream().filter(e-> e.getCommentStatus().contains("Не устранено")).count()).
@@ -100,8 +99,8 @@ public class CommonInfoService {
                 build();
 
         dto.setSystemsLag(systemsLagCount(PNRSystems));
-        dto.setActsIILag(actsIILagCount(PNRSystems));
-        dto.setActsKOLag(actsKOLagCount(subObjects));
+        dto.setActsIILag(actsIILagCount(CCSNumber));
+        dto.setActsKOLag(actsKOLagCount(CCSNumber));
         dto.setCommentsLag(commentsLagCount(comments));
 
         return dto;
@@ -199,7 +198,7 @@ public class CommonInfoService {
         LocalDate nowDate = LocalDate.now();
 
 
-        if(sourceDate.isBefore(nowDate) & sourceDate.isAfter(nowDate.minusDays(7) )) {
+        if(!sourceDate.isAfter(nowDate) && sourceDate.isAfter(nowDate.minusDays(7) )) {
             System.out.println("true");
             return true;
         }
@@ -218,27 +217,31 @@ public class CommonInfoService {
     // отставание от плана
     private Long systemsLagCount(List<PNRSystem> systems) {
 
-        return systems.stream().filter(s-> !s.getPNRPlanDate().equals(" ")).filter(s-> s.getPNRFactDate().equals(" "))
+        return systems.stream().filter(s-> !s.getPNRPlanDate().equals(" "))
+                .filter(s-> s.getPNRFactDate().equals(" "))
+                .filter(s-> s.getIIFactDate().equals(" "))
+                .filter(s-> s.getKOFactDate().equals(" "))
                 .filter(s-> dateLag(s.getPNRPlanDate())).count();
     }
-    private Long actsIILagCount(List<PNRSystem> systems) {
+    private Long actsIILagCount(String codeCCS) {
 
-        return systems.stream().filter(s-> !s.getIIPlanDate().equals(" ")).filter(s-> s.getIIPlanDate().equals(" "))
-                .filter(s-> dateLag(s.getIIPlanDate())).count();
+        return systemRepo.getAllByCCSNumber(codeCCS).stream().filter(system-> !system.getIIPlanDate().equals(" "))
+                .filter(system-> system.getIIFactDate().equals(" "))
+                .filter(system -> system.getKOFactDate().equals(" ") )
+                .filter(system-> dateLag(system.getIIPlanDate())).count();
     }
     private Long commentsLagCount(List<Comment> comments) {
 
         return comments.stream().filter(comment-> !comment.getEndDatePlan().equals(" ")).filter(comment-> comment.getEndDateFact().equals(" "))
                 .filter(comment-> dateLag(comment.getEndDatePlan())).count();
     }
-    private Long actsKOLagCount(List<SubObject> subObjects) {
-        if(!subObjects.isEmpty()) {
-            return subObjects.stream().map(sub -> sub.getPNRSystems().get(0)).filter(sys -> !sys.getKOPlanDate().equals(" "))
-                    .filter(sys -> dateLag(sys.getKOPlanDate())).count() - subObjects.stream().map(sub -> sub.getPNRSystems().get(0))
-                    .filter(sys -> !sys.getKOFactDate().equals(" ")).filter(sys -> dateLag(sys.getKOFactDate())).count();
-        }
-        System.out.println("Метод рассчета лага КО получил пустую коллекцию");
+    private Long actsKOLagCount(String numberCCS) {
 
-        return 0L;
+        return systemRepo.getAllByCCSNumber(numberCCS).stream().filter(system -> system.getKOFactDate().equals(" "))
+                    .filter(system -> !system.getKOPlanDate().equals(" "))
+                    .filter(system-> checkDateToPeriod(system.getKOPlanDate()))
+                    .collect(Collectors.toCollection(()-> new TreeSet<>(Comparator.comparing(PNRSystem::getPNRSystemKO)))).stream().count();
+
+
     }
 }

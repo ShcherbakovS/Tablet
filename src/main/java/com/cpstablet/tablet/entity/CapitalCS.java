@@ -38,4 +38,9 @@ public class CapitalCS {
     // счетчик замечаний
     private Long commentCounter;
 
+    @OneToOne(fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL,
+            mappedBy = "capitalCS")
+    private CapitalCSInfo capitalCSInfo;
+
 }

@@ -19,7 +19,7 @@ public class SystemService {
 
     static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.mm.yyyy");
     @Value("${check.emptyValue}")
-    static String checkValue;  //TODO: КОСТЫЛЬ с фронта для проверки даты, переписан в проперти
+    static String checkValue;
     private final SystemRepo systemRepo;
 
     private final SubObjectRepo subObjectRepo;
@@ -81,13 +81,15 @@ public class SystemService {
         if(!systemDTO.getKOPlanDate().equals(" ")) {
             SubObject subObject = subObjectRepo.findByCCSCode(system.getCCSNumber()).get(0);
             System.out.println( subObject.getSubObjectName() + "РЕДАКТИРОВАНИЕ ДАТ ПЛАНА И ФАКТА ПО СИСТЕМАМ КО");
-            subObject.getPNRSystems().forEach(s-> s.setKOPlanDate(system.getKOPlanDate()));
+            subObject.getPNRSystems().forEach(s-> {s.setKOPlanDate(system.getKOPlanDate());
+                                                    systemRepo.save(s);});
             subObjectRepo.save(subObject);
         }
         if(!systemDTO.getKOFactDate().equals(" ")) {
             SubObject subObject = subObjectRepo.findByCCSCode(toUpdate.getCCSNumber()).get(0);
             System.out.println( subObject.getSubObjectName() + "РЕДАКТИРОВАНИЕ ДАТ ПЛАНА И ФАКТА ПО СИСТЕМАМ КО");
-            subObject.getPNRSystems().forEach(s-> s.setKOFactDate(system.getKOFactDate()));
+            subObject.getPNRSystems().forEach(s-> { s.setKOFactDate(system.getKOFactDate());
+                                                    systemRepo.save(s);});
             subObjectRepo.save(subObject);
         }
 
