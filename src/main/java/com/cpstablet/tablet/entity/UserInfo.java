@@ -19,7 +19,8 @@ public class UserInfo {
     private String fullName;
     @Column(name = "user_phone")
     private String phoneNumber;
-
+    @Column(name= "registration_date")
+    private String registrationDate;
     //TODO зааменить организацию в полноценную сущность
     @Column(name = "organisation")
     private String organisation;

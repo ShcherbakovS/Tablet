@@ -21,6 +21,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
@@ -37,6 +39,7 @@ public class AuthenticationService {
 
 
     public void registration(RegistrationRequestDTO registration) {
+
         User user = new User();
         UserInfo userInfo = new UserInfo();
         RegistrationApplication registrationApplication = new RegistrationApplication();
@@ -44,6 +47,7 @@ public class AuthenticationService {
         userInfo.setFullName(registration.getFullName());
         userInfo.setPhoneNumber("Нет");
         userInfo.setOrganisation(registration.getOrganisation());
+        userInfo.setRegistrationDate(LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
 
         user.setUsername(registration.getEmail());
         user.setEmail(registration.getEmail());

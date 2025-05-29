@@ -23,8 +23,7 @@ public class CapitalCSInfo {
     private String preparatoryDocsLink; // подготовительная док-ция
 
     @OneToOne
-    @MapsId
-    @JoinColumn(name = "id")
+    @JoinColumn(name = "capitalcs_id")
     private CapitalCS capitalCS;
 
 }

@@ -2,6 +2,7 @@ package com.cpstablet.tablet.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Cascade;
 
 import java.util.List;
 
@@ -42,5 +43,10 @@ public class CapitalCS {
             cascade = CascadeType.ALL,
             mappedBy = "capitalCS")
     private CapitalCSInfo capitalCSInfo;
+
+    @OneToMany(fetch = FetchType.LAZY,
+                cascade = CascadeType.ALL,
+                mappedBy = "capitalCS")
+    private List<CalendarDay> calendarDays;
 
 }

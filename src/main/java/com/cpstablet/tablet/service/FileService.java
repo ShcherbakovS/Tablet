@@ -150,7 +150,8 @@ public class FileService {
         Thumbnails.of(file.getInputStream())
                 .size(800, 600)  // TODO: проверить на фронте размерность и сжатие после загрузки необходимость корректировки
                 .outputFormat("jpg")
-                .outputQuality(0.5)
+                .outputQuality(0.7)
+                .useExifOrientation(false)  // Игнорировать EXIF ориентацию
                 .keepAspectRatio(true)
                 .toOutputStream(baos);
 

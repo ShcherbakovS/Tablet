@@ -5,7 +5,6 @@ import com.cpstablet.tablet.DTO.CapitalCSDTO;
 import com.cpstablet.tablet.DTO.CapitalCSInfoDTO;
 import com.cpstablet.tablet.entity.CapitalCS;
 import com.cpstablet.tablet.entity.CapitalCSInfo;
-import com.cpstablet.tablet.entity.User;
 import com.cpstablet.tablet.repository.ApplicationRepo;
 import com.cpstablet.tablet.repository.CapitalCSInfoRepo;
 import com.cpstablet.tablet.repository.CapitalCSRepo;
@@ -15,7 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import java.util.List;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -29,7 +28,6 @@ public class CapitalCSService {
 
     public HttpStatus create(CapitalCSDTO capitalDTO) {
 
-            CapitalCSInfo capitalCSInfo = capitalCSInfoRepo.save(new CapitalCSInfo());
 
            capitalCSRepo.save(CapitalCS.builder().
                     capitalCSName(capitalDTO.getCapitalCSName()).
@@ -43,7 +41,7 @@ public class CapitalCSService {
                     CWSupervisor(capitalDTO.getCWSupervisor()).
                     CIWSupervisor(capitalDTO.getCIWSupervisor()).
                     commentCounter(1L).
-                   capitalCSInfo(capitalCSInfo).
+                    capitalCSInfo(new CapitalCSInfo()).
                     build());
 
             return HttpStatus.CREATED;
@@ -51,21 +49,41 @@ public class CapitalCSService {
     }
 
     public CapitalCS findCCS(String codeCCS) {
+
         return capitalCSRepo.findByCodeCCS(codeCCS).orElseThrow(()-> new RuntimeException("Объекта с кодом "+ codeCCS + " не существует"));
+
+
     }
-    public List<CapitalCS> findAll() {
+    public List<CapitalCSDTO> findAll() {
 
-        return capitalCSRepo.findAll();
+        return capitalCSRepo.findAll().stream().map(capitalCS -> CapitalCSDTO.builder()
+                .capitalCSId(capitalCS.getCapitalCSId())
+                .capitalCSName(capitalCS.getCapitalCSName())
+                .CIWExecutor(capitalCS.getCIWExecutor())
+                .CIWSupervisor(capitalCS.getCIWSupervisor())
+                .codeCCS(capitalCS.getCodeCCS())
+                .customer(capitalCS.getCustomer())
+                .customerSupervisor(capitalCS.getCustomerSupervisor())
+                .CWExecutor(capitalCS.getCWExecutor())
+                .CWSupervisor(capitalCS.getCWSupervisor())
+                .locationRegion(capitalCS.getLocationRegion())
+                .objectType(capitalCS.getObjectType())
+                .capitalCSInfoDTO(capitalCS.getCapitalCSInfo()==null? CapitalCSInfoDTO.builder().build() :
+                        CapitalCSInfoDTO.builder()
+                                .executiveDocsLink(capitalCS.getCapitalCSInfo().getExecutiveDocsLink())
+                                .operationalDocsLink(capitalCS.getCapitalCSInfo().getOperationalDocsLink())
+                                .preparatoryDocsLink(capitalCS.getCapitalCSInfo().getPreparatoryDocsLink())
+                                .workingDocsLink(capitalCS.getCapitalCSInfo().getWorkingDocsLink())
+                                .build())
+                .build() ).collect(Collectors.toList());
     }
 
-    public CapitalCS getUserApprovedCapitalCCS(Long userId) {
-        return null;
-    }
-    public HttpStatus deleteCapitalCS(Long capitalCSId) {
 
-        if(capitalCSRepo.findById(capitalCSId).isPresent()) {
+    public HttpStatus deleteCapitalCS(Long id) {
 
-            CapitalCS capitalCS = capitalCSRepo.findById(capitalCSId).orElseThrow(()-> new RuntimeException("Объект строительства не найден"));
+        if(capitalCSRepo.findById(id).isPresent()) {
+
+            CapitalCS capitalCS = capitalCSRepo.findById(id).orElseThrow(()-> new RuntimeException("Объект строительства не найден"));
 
             userRepo.findAll().stream().forEach(user-> user.getAllowedObjects().remove(capitalCS));
             appRepo.findAll().stream().forEach(app-> {
@@ -83,18 +101,18 @@ public class CapitalCSService {
 
     public void  update(CapitalCSDTO dto, Long id) {
 
-        CapitalCS capital = capitalCSRepo.findById(id).orElseThrow(()-> new RuntimeException("Объекут не найден в системе"));
+        CapitalCS capital = capitalCSRepo.findById(id).orElseThrow(()-> new RuntimeException("Объект не найден в системе"));
 
-        if(!dto.getCapitalCSName().equals(" ")) capital.setCapitalCSName(dto.getCapitalCSName());
-        if(!dto.getCIWExecutor().equals(" ")) capital.setCIWExecutor(dto.getCIWExecutor());
-        if(!dto.getCIWSupervisor().equals(" ")) capital.setCIWSupervisor(dto.getCIWSupervisor());
-        if(!dto.getCodeCCS().equals(" ")) capital.setCodeCCS(dto.getCodeCCS());
-        if(!dto.getCustomer().equals(" ")) capital.setCustomer(dto.getCustomer());
-        if(!dto.getCustomerSupervisor().equals(" ")) capital.setCustomerSupervisor(dto.getCustomerSupervisor());
-        if(!dto.getCWExecutor().equals(" ")) capital.setCWExecutor(dto.getCWExecutor());
-        if(!dto.getCWSupervisor().equals(" ")) capital.setCWSupervisor(dto.getCWSupervisor());
-        if(!dto.getLocationRegion().equals(" ")) capital.setLocationRegion(dto.getLocationRegion());
-        if(!dto.getObjectType().equals(" ")) capital.setObjectType(dto.getObjectType());
+        if(!dto.getCapitalCSName().equals(" "))capital.setCapitalCSName(dto.getCapitalCSName());
+        if(!dto.getCIWExecutor().equals(" "))capital.setCIWExecutor(dto.getCIWExecutor());
+        if(!dto.getCIWSupervisor().equals(" "))capital.setCIWSupervisor(dto.getCIWSupervisor());
+        if(!dto.getCodeCCS().equals(" "))capital.setCodeCCS(dto.getCodeCCS());
+        if(!dto.getCustomer().equals(" "))capital.setCustomer(dto.getCustomer());
+        if(!dto.getCustomerSupervisor().equals(" "))capital.setCustomerSupervisor(dto.getCustomerSupervisor());
+        if(!dto.getCWExecutor().equals(" "))capital.setCWExecutor(dto.getCWExecutor());
+        if(!dto.getCWSupervisor().equals(" "))capital.setCWSupervisor(dto.getCWSupervisor());
+        if(!dto.getLocationRegion().equals(" "))capital.setLocationRegion(dto.getLocationRegion());
+        if(!dto.getObjectType().equals(" "))capital.setObjectType(dto.getObjectType());
 
         capitalCSRepo.save(capital);
 
@@ -114,18 +132,22 @@ public class CapitalCSService {
         return filteredCapitals;
     }
 
-    public void updateCapitalCSInfo(CapitalCSInfo dto, Long id) {
+    public void updateCapitalCSInfo(CapitalCSInfo dto, String codeCCS) {
 
-        CapitalCS capitalCS = capitalCSRepo.findById(id).orElseThrow(()-> new RuntimeException("Объект не найден"));
+        CapitalCS capitalCS = capitalCSRepo.findByCodeCCS(codeCCS).orElseThrow(()-> new RuntimeException("Объект не найден"));
 
         CapitalCSInfo info = capitalCS.getCapitalCSInfo();
+
+        if(info == null) {
+
+            info = new CapitalCSInfo();
+        }
 
         info.setExecutiveDocsLink(dto.getExecutiveDocsLink());
         info.setOperationalDocsLink(dto.getOperationalDocsLink());
         info.setPreparatoryDocsLink(dto.getPreparatoryDocsLink());
         info.setWorkingDocsLink(dto.getWorkingDocsLink());
 
-        capitalCSInfoRepo.save(info);
-
+        capitalCSRepo.save(capitalCS);
     }
 }

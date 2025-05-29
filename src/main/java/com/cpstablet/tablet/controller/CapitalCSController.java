@@ -59,28 +59,20 @@ public class CapitalCSController {
     public  ResponseEntity<List<CapitalCS>> getFilteredBuUserId(@PathVariable Long userId) {
         return new ResponseEntity<>(capitalService.filteredByUserId(userId), HttpStatus.OK);
     }
-
     @GetMapping("/getAll")
-    public  ResponseEntity<List<CapitalCS>> getAll() {
+    public  ResponseEntity<List<CapitalCSDTO>> getAll() {
             return new ResponseEntity<>(capitalService.findAll(), HttpStatus.OK);
 
     }
-
-    @GetMapping("/getApprovedFacilities/{username}")
-    public ResponseEntity<List<CapitalCSDTO>> getUserApprovedCapitalCCS(@PathVariable("username") String userId) {
-        return null;
-    }
-
     @DeleteMapping("/deleteCapitalCS/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public HttpStatus deleteCapitalCS(@PathVariable("id") Long id) {
         return capitalService.deleteCapitalCS(id);
     }
     @PutMapping("/updateCapitalCSInfo/{id}")
-
-    public HttpStatus updateCCSDocsInfo(@RequestBody String jsonString, @PathVariable("id") Long id) {
+    public HttpStatus updateCCSDocsInfo(@RequestBody String jsonString, @PathVariable("id") String codeCCS) {
         try {
-            capitalService.updateCapitalCSInfo(myMapper.readValue(jsonString, CapitalCSInfo.class), id);
+            capitalService.updateCapitalCSInfo(myMapper.readValue(jsonString, CapitalCSInfo.class), codeCCS);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

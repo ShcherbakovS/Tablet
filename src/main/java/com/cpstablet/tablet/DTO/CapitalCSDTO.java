@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class CapitalCSDTO {
 
+        private Long capitalCSId;
         private String capitalCSName;
         private String codeCCS;
         private String locationRegion;
@@ -27,5 +28,7 @@ public class CapitalCSDTO {
         private String CWSupervisor;
         // куратор СМР
         private String CIWSupervisor;
+        // информация об объекте
+        private CapitalCSInfoDTO capitalCSInfoDTO;
 
 }
