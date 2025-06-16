@@ -8,6 +8,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,9 +22,11 @@ public class Scheduler {
     @Scheduled(cron = "@daily" )
     public void commentChecker() {
 
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+
         List<Comment> commentsToCheck = commentRepo.findAll().stream().
                 filter(e-> !e.getEndDateFact().equals(" ")).
-                filter(e-> LocalDate.parse(e.getEndDatePlan()).isBefore(LocalDate.now())).
+                filter(e-> LocalDate.parse(e.getEndDatePlan(), formatter).isBefore(LocalDate.now())).
                 collect(Collectors.toList());
 
         commentsToCheck.stream().forEach(e-> e.setCommentStatus("Не устранено с просрочкой"));

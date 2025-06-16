@@ -22,7 +22,7 @@ public class SystemService {
     static String checkValue;
     private final SystemRepo systemRepo;
 
-    private final SubObjectRepo subObjectRepo;
+
     private final CommentService commentService;
     private final SubObjectService subObjectService;
 
@@ -47,7 +47,7 @@ public class SystemService {
                         build()).collect(Collectors.toList());
     }
 
-    public HttpStatus updateSystemInfo(PNRSystemDTO systemDTO, Long id) {
+    public void updateSystemInfo(PNRSystemDTO systemDTO, Long id) {
 
         System.out.println(systemDTO.toString());
         System.out.println("\n");
@@ -60,7 +60,6 @@ public class SystemService {
 
         //TODO: проверка дат- верхний статус не может быть заполнен при пустом нижнем- РПН->ИИ->КО
 
-        toUpdate.setPNRSystemStatus(systemDTO.getPNRSystemStatus());
 
         toUpdate.setCIWExecutor(systemDTO.getCIWExecutor());
 
@@ -73,39 +72,53 @@ public class SystemService {
         toUpdate.setKOPlanDate(systemDTO.getKOPlanDate());
         toUpdate.setKOFactDate(systemDTO.getKOFactDate());
 
-        PNRSystem system =systemRepo.save(toUpdate);
 
 
-        //TODO если в системе проставлены планы и факты КО присваивать значения остальным автоматически
+        if(toUpdate.getPNRSystemStatus().contains(" КО ") && !systemDTO.getPNRSystemStatus().contains(" КО ")) {
+            systemRepo.getAllByCCSNumber(toUpdate.getCCSNumber()).stream().filter(sys-> sys.getPNRSystemKO().equals(toUpdate.getPNRSystemKO())).forEach(s-> {s.setKOPlanDate(systemDTO.getKOPlanDate());
+                s.setKOFactDate(systemDTO.getKOFactDate());
+                s.setKOPlanDate(systemDTO.getKOPlanDate());
+                s.setPNRSystemStatus(getSystemStatus(s));
 
-        if(!systemDTO.getKOPlanDate().equals(" ")) {
-            SubObject subObject = subObjectRepo.findByCCSCode(system.getCCSNumber()).get(0);
-            System.out.println( subObject.getSubObjectName() + "РЕДАКТИРОВАНИЕ ДАТ ПЛАНА И ФАКТА ПО СИСТЕМАМ КО");
-            subObject.getPNRSystems().forEach(s-> {s.setKOPlanDate(system.getKOPlanDate());
-                                                    systemRepo.save(s);});
-            subObjectRepo.save(subObject);
+                systemRepo.save(s);
+
+            });
+
+        } else if (systemDTO.getPNRSystemStatus().contains(" КО ")) {
+            systemRepo.getAllByCCSNumber(toUpdate.getCCSNumber())
+                    .stream().filter(sys-> sys.getPNRSystemKO().equals(toUpdate.getPNRSystemKO())).forEach(s -> {
+                s.setKOPlanDate(systemDTO.getKOPlanDate());
+                s.setKOFactDate(systemDTO.getKOFactDate());
+                s.setPNRSystemStatus(systemDTO.getPNRSystemStatus());
+                systemRepo.save(s);
+            });
+        } else {
+            toUpdate.setPNRSystemStatus(systemDTO.getPNRSystemStatus());
         }
-        if(!systemDTO.getKOFactDate().equals(" ")) {
-            SubObject subObject = subObjectRepo.findByCCSCode(toUpdate.getCCSNumber()).get(0);
-            System.out.println( subObject.getSubObjectName() + "РЕДАКТИРОВАНИЕ ДАТ ПЛАНА И ФАКТА ПО СИСТЕМАМ КО");
-            subObject.getPNRSystems().forEach(s-> { s.setKOFactDate(system.getKOFactDate());
-                                                    systemRepo.save(s);});
-            subObjectRepo.save(subObject);
-        }
 
-        subObjectService.checkStatus(id);
+        systemRepo.save(toUpdate);
 
-
-        return HttpStatus.OK;
+        checkStatus(id);
 
     }
 
-    private void checkStatus(String status, PNRSystemDTO systemDTO, Long id)  {
-
-        PNRSystem system = systemRepo.findByPNRSystemId(id);
-
+    public void checkStatus(Long id)  {
 
         subObjectService.checkStatus(id);
+    }
+    public String getSystemStatus(PNRSystem pnrSystem) {
+
+        if(pnrSystem.getKOFactDate() != null && !pnrSystem.getKOFactDate().equals(" ")) {
+            return "Акт КО подписан";
+        }
+        if (pnrSystem.getKOFactDate().equals(" ") && !pnrSystem.getIIFactDate().equals(" ")) {
+            return "Акт ИИ подписан";
+        }
+        if ((pnrSystem.getKOFactDate().equals(" ") && pnrSystem.getIIFactDate().equals(" ")) && !pnrSystem.getPNRFactDate().equals(" ")) {
+            return "Принято в ПНР";
+        }
+
+        return pnrSystem.getPNRSystemStatus() ;
     }
 }
 

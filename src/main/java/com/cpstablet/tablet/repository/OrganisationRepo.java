@@ -8,4 +8,6 @@ import org.springframework.stereotype.Repository;
 public interface OrganisationRepo extends JpaRepository<Organisation, Long> {
 
 
+
+
 }

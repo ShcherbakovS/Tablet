@@ -22,7 +22,7 @@ public class CapitalCSInfo {
     private String operationalDocsLink; // эксплуотационная док -ция
     private String preparatoryDocsLink; // подготовительная док-ция
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "capitalcs_id")
     private CapitalCS capitalCS;
 

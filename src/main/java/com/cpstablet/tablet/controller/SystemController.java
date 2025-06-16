@@ -35,11 +35,15 @@ public class SystemController {
     public HttpStatus updatePNRSystemInfo(@RequestBody String JsonString, @PathVariable("id") Long id) {
 
         try {
-            return systemService.updateSystemInfo(myMapper.readValue(JsonString, PNRSystemDTO.class), id);
+            systemService.updateSystemInfo(myMapper.readValue(JsonString, PNRSystemDTO.class), id);
+            systemService.checkStatus(id);
+            return HttpStatus.OK;
         } catch (
                 JsonProcessingException e) {
             throw new RuntimeException(e);
         }
+
+
 
     }
 

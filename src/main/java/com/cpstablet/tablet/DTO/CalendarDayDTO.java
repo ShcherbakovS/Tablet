@@ -1,10 +1,14 @@
 package com.cpstablet.tablet.DTO;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-
-
+@Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class CalendarDayDTO {
 
     private Long id;
@@ -14,6 +18,5 @@ public class CalendarDayDTO {
     private Long personnelFact;
 
     private String date;
-
 
 }

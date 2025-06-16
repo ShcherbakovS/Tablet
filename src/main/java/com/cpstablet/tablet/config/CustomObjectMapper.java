@@ -12,12 +12,12 @@ public class CustomObjectMapper {
 
     @Bean
     @Qualifier("myMapper")
-    public ObjectMapper customMapper()  {
+    public ObjectMapper customMapper() {
 
         ObjectMapper mapper = new ObjectMapper();
 
-        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL).
-                enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT);
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL)
+                .enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT);
         return mapper;
     }
 }

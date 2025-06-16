@@ -38,6 +38,8 @@ public class User implements UserDetails {
     private Role role;
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Token> tokens;
+    @ManyToOne
+    Organisation organisation;
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinTable(
@@ -61,6 +63,8 @@ public class User implements UserDetails {
             cascade = CascadeType.ALL,
             mappedBy = "user")
     private RegistrationApplication registrationApplication;
+
+
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

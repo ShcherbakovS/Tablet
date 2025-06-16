@@ -25,17 +25,21 @@ public class SubObjectService {
     public void checkStatus(Long systemID)  {
 
 
-       PNRSystem system = systemRepo.findByPNRSystemId(systemID);
+        PNRSystem pnrSystem = systemRepo.findById(systemID).orElseThrow();
 
-       Set<String> statuses = systemRepo.getAllByCCSNumber(system.getCCSNumber()).stream().
-               filter(s -> s.getPNRSystemKO().equals(system.getPNRSystemKO())).
-               map(s -> s.getPNRSystemStatus()).collect(Collectors.toSet());
+        SubObject subObject = pnrSystem.getSubObject();
 
+        Set<String> statuses = systemRepo.getAllByCCSNumber(pnrSystem.getCCSNumber()).stream().filter(s-> s.getPNRSystemKO().equals(pnrSystem))
+                .map(s -> s.getPNRSystemStatus()).collect(Collectors.toSet());
 
+        statuses.remove(" ");
+        if (statuses.isEmpty()) {
+            return;
+        }
 
-        System.out.println(statuses.size() + " statuses contains");
+        SubObject toUpdate = pnrSystem.getSubObject();
 
-        SubObject toUpdate = subObjectRepo.findBYCCSCodeAndSubObjectName(system.getCCSNumber(), system.getSubObject().getSubObjectName());
+        System.out.println(toUpdate.getSubObjectName() + "Подобъект в который пишем");
 
         System.out.println("subobjectName " + toUpdate.getSubObjectName());
 
@@ -43,27 +47,27 @@ public class SubObjectService {
             System.out.println("Ведутся ПНР");
             toUpdate.setStatus("Ведутся ПНР");
         }
-        if(statuses.size() == 1 & statuses.contains("Акт ИИ подписан")) {
+        if(statuses.size() == 1 && statuses.contains("Акт ИИ подписан")) {
             toUpdate.setStatus("Акт ИИ подписан");
             System.out.println("Акт ИИ подписан");
         }
-        if (statuses.size() == 1 & statuses.contains("Ведутся СМР")) {
+        if (statuses.size() == 1 && statuses.contains("Ведутся СМР")) {
             System.out.println("Ведутся СМР");
             toUpdate.setStatus("Ведутся СМР");
         }
-        if(statuses.size() == 1 & statuses.contains("Предъявлено в ПНР"))   {
+        if(statuses.size() == 1 && statuses.contains("Предъявлено в ПНР"))   {
             System.out.println("Предъявлено в ПНР");
             toUpdate.setStatus("Предъявлено в ПНР");
         }
-        if(statuses.size() == 1 & statuses.contains("Завершены СМР"))   {
+        if(statuses.size() == 1 && statuses.contains("Завершены СМР"))   {
             toUpdate.setStatus("Завершены СМР");
             System.out.println("Завершены СМР");
         }
-        if((statuses.size() == 2 & statuses.contains("Завершены СМР")) & statuses.contains("Предъявлено в ПНР"))  {
+        if((statuses.size() == 2 && statuses.contains("Завершены СМР")) && statuses.contains("Предъявлено в ПНР"))  {
             toUpdate.setStatus("Завершены СМР");
             System.out.println("Завершены СМР");
         }
-        if (statuses.size() <= 3 & statuses.contains("Ведутся СМР") & (statuses.contains("Завершены СМР") && statuses.contains("Предъявлены в ПНР")))  {
+        if (((statuses.size() <= 3 && statuses.contains("Ведутся СМР")) && (statuses.contains("Завершены СМР")) && statuses.contains("Предъявлены в ПНР")))  {
             toUpdate.setStatus("Ведутся СМР");
             System.out.println("Ведутся СМР");
         }

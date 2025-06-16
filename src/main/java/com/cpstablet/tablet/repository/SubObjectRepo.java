@@ -14,6 +14,7 @@ import java.util.Optional;
 public interface SubObjectRepo extends JpaRepository<SubObject, Long> {
 
     Optional<SubObject> findAllBySubObjectName(String name);
+    List<SubObject> findAllByCCSCode(String CCSCode);
     List<SubObject> findByCCSCode(String CCSCode);
 
     @Transactional
@@ -28,4 +29,6 @@ public interface SubObjectRepo extends JpaRepository<SubObject, Long> {
     @Modifying
     @Query("DELETE FROM SubObject e WHERE e.CCSCode = :CCSCode")
     void deleteAllByCCSCode(String CCSCode);
+
+
 }

@@ -5,7 +5,11 @@ import com.cpstablet.tablet.entity.CalendarDay;
 import com.cpstablet.tablet.entity.CapitalCS;
 import com.cpstablet.tablet.repository.CalendarDayRepo;
 import com.cpstablet.tablet.repository.CapitalCSRepo;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
@@ -38,87 +42,127 @@ public class CalendarService {
 
     private CalendarDayRepo calendarDayRepo;
     private CapitalCSRepo capitalCSRepo;
+    @Qualifier("myMapper")
+    private final ObjectMapper myMapper;
 
-    public void createCalendarDays(LocalDate creationDay, Long id) {
-
-        /*
-            проверка в случае если дата попадает на декабрь-> записать календарь до следующего года
-         */
-
-
-        CapitalCS capitalCS = capitalCSRepo.findById(id).orElseThrow(()-> new RuntimeException("Объект не найден"));
-
-        LocalDate lastDayOfYear = LocalDate.of(creationDay.getYear(), Month.DECEMBER, 31);
-
-        Stream.iterate(creationDay, date -> !date.isAfter(lastDayOfYear), date -> date.plusDays(1))
-                .filter(day-> day.getDayOfWeek().equals(DayOfWeek.MONDAY))
-                .map(day-> CalendarDay.builder()
-                        .personnelPlan(0L)
-                        .personnelFact(0l)
-                        .date(day)
-                        .capitalCS(capitalCS)
-                        .build()).collect(Collectors.toList()).stream().forEach(calendarDay -> calendarDayRepo.save(calendarDay));
-
-    }
-
-    public List<CalendarDayDTO> createWeeklyCalendar(LocalDate referenceDay, Long id) {
-
-
-        CapitalCS capitalCS = capitalCSRepo.findById(id).orElseThrow(()-> new RuntimeException("Объект не найден"));
-
-        if(capitalCS.getCalendarDays().isEmpty()) {
-
-            createCalendarDays(referenceDay, id);
-
-        } else if (referenceDay.getMonth().equals(Month.DECEMBER)) {
-
-            createCalendarDays(LocalDate.of(referenceDay.plusYears(1).getYear(), Month.DECEMBER, 01), id);
+    public void createCalendarDays(LocalDate creationDay, String codeCCS) {
+        if (creationDay == null || codeCCS == null || codeCCS.isEmpty()) {
+            throw new IllegalArgumentException("Некорректные входные параметры");
         }
 
-        List<CalendarDay> calendarDays = capitalCS.getCalendarDays();
+        CapitalCS capitalCS = capitalCSRepo.findByCodeCCS(codeCCS)
+                .orElseThrow(() -> new RuntimeException("Объект не найден"));
 
+        LocalDate lastDayOfYear = LocalDate.of(creationDay.getYear(), Month.DECEMBER, 31);
+        LocalDate firstDayOfYear = LocalDate.of(creationDay.getYear(), Month.JANUARY, 1);
+
+        List<CalendarDay> calendarDays = Stream.iterate(firstDayOfYear,
+                date -> !date.isAfter(lastDayOfYear),
+                date -> date.plusDays(1))
+                .filter(day -> day.getDayOfWeek().equals(DayOfWeek.MONDAY))
+                .map(day -> CalendarDay.builder()
+                        .personnelPlan(0L)
+                        .personnelFact(0L)
+                        .date(day)
+                        .capitalCS(capitalCS)
+                        .build())
+                .collect(Collectors.toList());
+
+        calendarDayRepo.saveAll(calendarDays);
+    }
+
+    public List<CalendarDayDTO> createWeeklyCalendar(LocalDate referenceDay, String codeCCS) {
+
+        LocalDate sourceDate;
+
+        if (referenceDay.getDayOfWeek().equals(DayOfWeek.MONDAY)) {
+            sourceDate = referenceDay;
+        } else {
+
+            sourceDate = findMonday();
+        }
+
+        CapitalCS capitalCS = capitalCSRepo.findByCodeCCS(codeCCS)
+                .orElseThrow(() -> new RuntimeException("Объект не найден"));
+
+        if (capitalCS.getCalendarDays().isEmpty()) {
+            createCalendarDays(sourceDate, codeCCS);
+        } else if (sourceDate.getMonth().equals(Month.DECEMBER)) {
+            createCalendarDays(LocalDate.of(sourceDate.plusYears(1).getYear(), Month.DECEMBER, 1), codeCCS);
+        }
 
         List<LocalDate> days = new ArrayList<>();
 
-        if(!referenceDay.getDayOfWeek().equals(DayOfWeek.MONDAY)) {
+        days.add(sourceDate);
 
-            Stream.iterate(referenceDay, date-> !date.isAfter(referenceDay), date-> date.minusDays(1))
-                    .filter(day-> day.getDayOfWeek().equals(DayOfWeek.MONDAY))
-                    .limit(4).forEach(day-> days.add(day));
+        // Добавляем даты до референсной даты
+        Stream.iterate(sourceDate, date -> date.minusDays(1))
+                .filter(date -> date.getDayOfWeek().equals(DayOfWeek.MONDAY))
+                .limit(4)
+                .forEach(days::add);
 
-            Stream.iterate(referenceDay, date-> !date.isBefore(referenceDay), date-> date.plusDays(1))
-                    .filter(day-> day.getDayOfWeek().equals(DayOfWeek.MONDAY))
-                    .limit(3).forEach(day-> days.add(day));
-        } else {
+        // Добавляем даты после референсной даты
+        Stream.iterate(sourceDate, date -> date.plusDays(1))
+                .filter(date -> date.getDayOfWeek().equals(DayOfWeek.MONDAY))
+                .limit(4)
+                .forEach(days::add);
 
-            days.add(referenceDay);
+        System.out.println(days);
 
-            Stream.iterate(referenceDay, date-> !date.isAfter(referenceDay), date-> date.minusDays(1))
-                    .filter(day-> day.getDayOfWeek().equals(DayOfWeek.MONDAY))
-                    .limit(3).forEach(day-> days.add(day));
-
-            Stream.iterate(referenceDay, date-> !date.isAfter(referenceDay), date-> date.plusDays(1))
-                    .filter(day-> day.getDayOfWeek().equals(DayOfWeek.MONDAY))
-                    .limit(3).forEach(day-> days.add(day));
-        }
-
-        return calendarDays.stream().filter(calendarDay -> days.contains(calendarDay.getDate()))
+        List<CalendarDayDTO> daysDTO = capitalCS.getCalendarDays().stream()
+                .filter(calendarDay -> days.contains(calendarDay.getDate()))
                 .sorted(Comparator.comparing(CalendarDay::getDate))
-                .map(calendarDay -> CalendarDayDTO.builder()
-                        .id(calendarDay.getId())
-                        .personnelPlan(calendarDay.getPersonnelFact())
-                        .personnelFact(calendarDay.getPersonnelFact())
-                        .date(formatDate(calendarDay.getDate()))
-                        .build()).collect(Collectors.toList());
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+        daysDTO.stream().forEach(System.out::println);
+
+        return daysDTO;
     }
 
+    private CalendarDayDTO convertToDTO(CalendarDay calendarDay) {
+        return CalendarDayDTO.builder()
+                .id(calendarDay.getId())
+                .personnelPlan(calendarDay.getPersonnelPlan())
+                .personnelFact(calendarDay.getPersonnelFact())
+                .date(formatDate(calendarDay.getDate()))
+                .build();
+    }
+
+    public HttpStatus updateStaffInfo(List<CalendarDayDTO> days) {
+        if (days == null || days.isEmpty()) {
+            throw new IllegalArgumentException("Список дней пуст");
+        }
+
+        List<CalendarDay> updatedDays = new ArrayList<>();
+
+        for (CalendarDayDTO dayDTO : days) {
+            try {
+                CalendarDay day = calendarDayRepo.findById(dayDTO.getId())
+                        .orElseThrow(() -> new IllegalArgumentException("День с ID " + dayDTO.getId() + " не найден"));
+
+                day.setPersonnelFact(dayDTO.getPersonnelFact());
+                day.setPersonnelPlan(dayDTO.getPersonnelPlan());
+                updatedDays.add(day);
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Ошибка при обновлении дня с ID " + dayDTO.getId(), e);
+            }
+        }
+
+        calendarDayRepo.saveAll(updatedDays);
+        return HttpStatus.OK;
+    }
 
     private String formatDate(LocalDate date) {
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+
         return date.format(formatter);
 
     }
-
+    public LocalDate findMonday() {
+       return Stream.iterate(LocalDate.now(), date -> date.minusDays(1))
+                .filter(date -> date.getDayOfWeek().equals(DayOfWeek.MONDAY))
+                .findFirst().get();
+    }
 
 }

@@ -1,22 +1,21 @@
 package com.cpstablet.tablet.service;
 
+import com.cpstablet.tablet.DTO.CalendarDayDTO;
 import com.cpstablet.tablet.DTO.commonInfoDTO.ObjectCommonInfoDTO;
 import com.cpstablet.tablet.DTO.commonInfoDTO.SubobjectCommonInfDTO;
 import com.cpstablet.tablet.DTO.commonInfoDTO.SystemCommonInfDTO;
-import com.cpstablet.tablet.entity.Comment;
-import com.cpstablet.tablet.entity.PNRSystem;
-import com.cpstablet.tablet.entity.SubObject;
-import com.cpstablet.tablet.repository.CommentRepo;
-import com.cpstablet.tablet.repository.SubObjectRepo;
-import com.cpstablet.tablet.repository.SystemRepo;
+import com.cpstablet.tablet.entity.*;
+import com.cpstablet.tablet.repository.*;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.time.format.DateTimeFormatter.ofPattern;
 
@@ -27,12 +26,24 @@ public class CommonInfoService {
     private final SubObjectRepo subObjectRepo;
     private final SystemRepo systemRepo;
     private final CommentRepo commentRepo;
+    private final CalendarDayRepo calendarDayRepo;
+    private final CapitalCSRepo capitalCSRepo;
+    private final CalendarService calendarService;
+
+    private final DefectiveActRepo defectiveActRepo;
+
+    private final DefectiveActService defectiveActService;
 
     public ObjectCommonInfoDTO getObjectCommonInfo(String CCSNumber)  {
 
+        CapitalCS capitalCS = capitalCSRepo.findByCodeCCS(CCSNumber).orElseThrow(()->new RuntimeException("Объект не найден"));
         List<PNRSystem> PNRSystems = systemRepo.getAllByCCSNumber(CCSNumber);
         List<SubObject> subObjects = subObjectRepo.findByCCSCode(CCSNumber);
         List<Comment> comments = commentRepo.findCommentsByCodeCCS(CCSNumber);
+        LocalDate lastMonday = calendarService.findMonday();
+        List<DefectiveAct> defectiveActs = defectiveActRepo.findAllByCodeCCS(CCSNumber);
+
+        System.out.println(lastMonday);
 
         //TODO: динамику рассчитывать за семь дней, возможно добавить фильтрацию по мониторингу дат (текущая - 7)
 
@@ -90,12 +101,26 @@ public class CommonInfoService {
                 commentsDynamic(comments.stream().filter(com-> checkDateToPeriod(com.getEndDateFact())).count()).
 
                 systemsLag(systemsLagCount(PNRSystems)).
+
                 // нулевой показатель нет логики для дефектов
-                defectiveActsTotalQuantity(0L).
+                defectiveActsTotalQuantity(defectiveActs.stream().count()).
+
                 // нулевой показатель нет логики для дефектов
-                defectiveActsNotResolvedQuantity(0L).
+                defectiveActsNotResolvedQuantity(defectiveActs.stream()
+                        .filter(def-> def.getDefectiveActStatus().equals("Не устранено")).count()).
+
+                defectiveActsDynamic(defectiveActs.stream().filter(def-> checkDateToPeriod(def.getEndDateFact())).count()).
+
                 // нулевой показатель нет логики для подсчета персонала
-                busyStaff(0L).
+                busyStaff((LocalDate.now().getDayOfWeek().equals(DayOfWeek.MONDAY)?
+
+                        calendarDayRepo.findByCapitalCS(capitalCS).stream()
+                                .filter(day-> day.getDate().equals(LocalDate.now()))
+                                .findFirst().get().getPersonnelFact() :
+
+                                calendarDayRepo.findByCapitalCS(capitalCS).stream()
+                                        .filter(day-> day.getDate().equals(lastMonday))
+                                        .findFirst().get().getPersonnelFact())).
                 build();
 
         dto.setSystemsLag(systemsLagCount(PNRSystems));

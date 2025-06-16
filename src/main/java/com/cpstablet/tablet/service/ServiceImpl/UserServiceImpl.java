@@ -209,6 +209,7 @@ public class UserServiceImpl implements UserService {
                 .userInfo(user.getUserInfo() == null? new UserInfoDTO(): (UserInfoDTO.builder()
                         .fullName(user.getUserInfo().getFullName())
                         .organisation(user.getUserInfo().getOrganisation())
+                        .registrationDate(user.getUserInfo().getRegistrationDate())
                         .phoneNumber(user.getUserInfo().getPhoneNumber())
                         .build()))
                 .build();

@@ -26,8 +26,11 @@ public class ObjectCommonInfoDTO {
 
     //TODO рассчет динамики замечаний
     private Long commentsDynamic;
+
     private Long defectiveActsTotalQuantity;
     private Long defectiveActsNotResolvedQuantity;
+
+    private Long defectiveActsDynamic;
     private Long busyStaff;
 
     private Long systemsLag;

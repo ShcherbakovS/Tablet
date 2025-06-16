@@ -2,7 +2,6 @@ package com.cpstablet.tablet.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.Cascade;
 
 import java.util.List;
 
@@ -38,6 +37,8 @@ public class CapitalCS {
     private String CIWSupervisor;
     // счетчик замечаний
     private Long commentCounter;
+    // счетчик дефектов
+    private Long defectiveActCounter;
 
     @OneToOne(fetch = FetchType.LAZY,
             cascade = CascadeType.ALL,

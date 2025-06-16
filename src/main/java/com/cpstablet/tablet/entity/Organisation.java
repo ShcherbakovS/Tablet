@@ -3,6 +3,8 @@ package com.cpstablet.tablet.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 @Entity
 @Builder
 @AllArgsConstructor
@@ -18,6 +20,11 @@ public class Organisation {
 
     @Column(name = "organisation_name")
     private String organisationName;
+
+    @OneToMany(fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL,
+            mappedBy = "organisation")
+    List<User> users;
 
 
 }

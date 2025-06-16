@@ -24,7 +24,7 @@ public class SubObject {
 
     private String numberKO;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "subObject", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PNRSystem> PNRSystems;
 
     private String status;
