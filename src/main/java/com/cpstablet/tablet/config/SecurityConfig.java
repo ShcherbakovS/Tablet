@@ -56,7 +56,7 @@ public class SecurityConfig {
             auth.requestMatchers("/admin/**").hasAuthority("ADMIN");
             auth.requestMatchers("/user/**").hasAuthority("USER");
             auth.requestMatchers("/authUser/**", "/comments/**", "/capitals/**", "/systems/**", "/commons/**",
-                    "/files/**", "/subObjects/**").hasAnyAuthority("USER", "ADMIN");
+                    "/files/**", "/subObjects/**","/defectiveActs/**", "/organisations/**").hasAnyAuthority("USER", "ADMIN");
             auth.anyRequest().authenticated();
 
         })

@@ -27,21 +27,22 @@ public class SubObjectService {
 
         PNRSystem pnrSystem = systemRepo.findById(systemID).orElseThrow();
 
-        SubObject subObject = pnrSystem.getSubObject();
+//        SubObject subObject = pnrSystem.getSubObject();
 
-        Set<String> statuses = systemRepo.getAllByCCSNumber(pnrSystem.getCCSNumber()).stream().filter(s-> s.getPNRSystemKO().equals(pnrSystem))
+        Set<String> statuses = systemRepo.getAllByCCSNumber(pnrSystem.getCCSNumber()).stream()
+                .filter(s-> s.getPNRSystemKO().equals(pnrSystem.getPNRSystemKO()))
                 .map(s -> s.getPNRSystemStatus()).collect(Collectors.toSet());
-
-        statuses.remove(" ");
-        if (statuses.isEmpty()) {
-            return;
-        }
 
         SubObject toUpdate = pnrSystem.getSubObject();
 
-        System.out.println(toUpdate.getSubObjectName() + "Подобъект в который пишем");
+        statuses.remove(" ");
+        if (statuses.isEmpty()) {
+            System.out.println("ПУСТЫЕ СТАТУСЫ У СИСТЕМ!");
+            toUpdate.setStatus(" ");
+            subObjectRepo.save(toUpdate);
+            return;
+        }
 
-        System.out.println("subobjectName " + toUpdate.getSubObjectName());
 
         if (statuses.contains("Принято в ПНР") || statuses.contains("Ведутся ПНР") || statuses.contains("Проведены ИИ")) {
             System.out.println("Ведутся ПНР");

@@ -49,17 +49,11 @@ public class SystemService {
 
     public void updateSystemInfo(PNRSystemDTO systemDTO, Long id) {
 
-        System.out.println(systemDTO.toString());
-        System.out.println("\n");
-
         PNRSystem toUpdate = systemRepo.findByPNRSystemId(id);
 
         toUpdate.setCWExecutor(systemDTO.getCWExecutor());
 
         commentService.checkExecutor(systemDTO.getCIWExecutor(), toUpdate.getPNRSystemII());
-
-        //TODO: проверка дат- верхний статус не может быть заполнен при пустом нижнем- РПН->ИИ->КО
-
 
         toUpdate.setCIWExecutor(systemDTO.getCIWExecutor());
 
@@ -73,8 +67,7 @@ public class SystemService {
         toUpdate.setKOFactDate(systemDTO.getKOFactDate());
 
 
-
-        if(toUpdate.getPNRSystemStatus().contains(" КО ") && !systemDTO.getPNRSystemStatus().contains(" КО ")) {
+        if(toUpdate.getPNRSystemStatus().contains(" КО") && !systemDTO.getPNRSystemStatus().contains(" КО")) {
             systemRepo.getAllByCCSNumber(toUpdate.getCCSNumber()).stream().filter(sys-> sys.getPNRSystemKO().equals(toUpdate.getPNRSystemKO())).forEach(s-> {s.setKOPlanDate(systemDTO.getKOPlanDate());
                 s.setKOFactDate(systemDTO.getKOFactDate());
                 s.setKOPlanDate(systemDTO.getKOPlanDate());
@@ -84,7 +77,7 @@ public class SystemService {
 
             });
 
-        } else if (systemDTO.getPNRSystemStatus().contains(" КО ")) {
+        } else if (systemDTO.getPNRSystemStatus().contains(" КО")) {
             systemRepo.getAllByCCSNumber(toUpdate.getCCSNumber())
                     .stream().filter(sys-> sys.getPNRSystemKO().equals(toUpdate.getPNRSystemKO())).forEach(s -> {
                 s.setKOPlanDate(systemDTO.getKOPlanDate());
@@ -118,7 +111,7 @@ public class SystemService {
             return "Принято в ПНР";
         }
 
-        return pnrSystem.getPNRSystemStatus() ;
+        return " ";
     }
 }
 

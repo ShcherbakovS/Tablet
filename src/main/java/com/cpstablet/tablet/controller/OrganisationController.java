@@ -1,7 +1,10 @@
 package com.cpstablet.tablet.controller;
 
+import com.cpstablet.tablet.DTO.OrganisationDTO;
 import com.cpstablet.tablet.entity.Organisation;
 import com.cpstablet.tablet.repository.OrganisationRepo;
+import com.cpstablet.tablet.service.OrganisationService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -19,34 +22,38 @@ import java.util.List;
 public class OrganisationController {
 
     OrganisationRepo organisationRepo;
+    OrganisationService organisationService;
 
     @Qualifier("myMapper")
     private final ObjectMapper mapper;
 
     @PostMapping("/create")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity createOrganisation(String organisationInfo) {
+    public ResponseEntity createOrganisation(@RequestBody OrganisationDTO organisationInfo) {
 
-        return ResponseEntity.ok().build();
+           return new ResponseEntity<>(organisationService.createOrganisation(organisationInfo), HttpStatus.OK) ;
+
 
     }
     @PutMapping("/update")
     @PreAuthorize("hasAuthority('ADMIN')")
 
-    public ResponseEntity updateOrganisationInfo(String organisationInfo) {
+    public ResponseEntity updateOrganisationInfo(@RequestBody OrganisationDTO organisationInfo) {
+            organisationService.updateOrganisation(organisationInfo);
+
+
         return ResponseEntity.ok().build();
     }
     @GetMapping("/getAll")
     @PreAuthorize("hasAnyAuthority('ADMIN','USER')")
-    public List<Organisation> getAll() {
+    public List<OrganisationDTO> getAll() {
 
-        return organisationRepo.findAll();
+        return organisationService.findAll();
     }
-
-
     @DeleteMapping("/delete")
     @PreAuthorize("hasAuthority('ADMIN')")
     public HttpStatus deleteOrganisation(Long id) {
+        organisationService.deleteOrganisation(id);
 
         return HttpStatus.OK;
     }

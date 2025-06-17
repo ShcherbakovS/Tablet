@@ -3,6 +3,8 @@ package com.cpstablet.tablet.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 @Entity
 @Setter
 @Getter
@@ -64,5 +66,9 @@ public class DefectiveAct {
     @Column(name = "manufacturer")
     private String manufacturer; // изготовитель
 
+    @OneToMany( fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
+    List<Photo> photos;
 
 }

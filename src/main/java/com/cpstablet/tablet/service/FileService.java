@@ -3,9 +3,11 @@ package com.cpstablet.tablet.service;
 import com.cpstablet.tablet.entity.PNRSystem;
 import com.cpstablet.tablet.entity.Photo;
 import com.cpstablet.tablet.entity.SubObject;
+import com.cpstablet.tablet.repository.DefectiveActRepo;
 import com.cpstablet.tablet.repository.PhotoRepo;
 import com.cpstablet.tablet.repository.SubObjectRepo;
 import com.cpstablet.tablet.repository.SystemRepo;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import net.coobird.thumbnailator.Thumbnails;
@@ -14,8 +16,11 @@ import org.apache.poi.openxml4j.util.ZipSecureFile;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellReference;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
@@ -34,6 +39,8 @@ public class FileService {
     private final SystemRepo systemRepo;
     private final PhotoRepo photoRepo;
     private final SystemService systemService;
+
+    private final DefectiveActRepo defectiveActRepo;
 
     private final SubObjectService subObjectService;
 
@@ -157,6 +164,12 @@ public class FileService {
 
     public void uploadPhotos(MultipartFile file, Long id) throws IOException {
 
+        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+
+        HttpServletRequest request = attributes.getRequest();
+
+        String path = request.getRequestURI();
+
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
         Thumbnails.of(file.getInputStream())
@@ -167,8 +180,15 @@ public class FileService {
                 .keepAspectRatio(true)
                 .toOutputStream(baos);
 
-        Photo toSave = photoRepo.save(Photo.builder().fileName(file.getName()).contentType(file.getContentType())
-                .size((long) baos.size()).bytes(baos.toByteArray()).commentId(id).build());
+        if(path.contains("comments")) {
+            photoRepo.save(Photo.builder().fileName(file.getName()).contentType(file.getContentType())
+                    .size((long) baos.size()).bytes(baos.toByteArray()).commentId(id).build());
+        } else {
+//            TODO: сохранение в зависимости от места вызова метода для дефектов и замечаний
+//            defectiveActRepo.save(defectiveActRepo.findById(id).get().getPhotos().add(Photo.builder().fileName(file.getName()).contentType(file.getContentType())
+//                    .size((long) baos.size()).bytes(baos.toByteArray()).commentId(id).build()));
+        }
+
     }
 
     public Photo getPhotosByCommentId(Long id) {

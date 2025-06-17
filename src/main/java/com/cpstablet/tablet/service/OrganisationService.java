@@ -21,22 +21,23 @@ public class OrganisationService {
     private final UserRepo userRepo;
 
 
-    public HttpStatus createOrganisation(OrganisationDTO organisationDTO) {
+    public Organisation createOrganisation(OrganisationDTO organisationDTO) {
 
-        organisationRepo.save(Organisation.builder()
+        return organisationRepo.save(Organisation.builder()
                         .organisationName(organisationDTO.getOrganisationName())
                 .build());
 
-        return HttpStatus.CREATED;
+
     }
 
-    public HttpStatus updateOrganisation(OrganisationDTO organisationDTO) {
+    public Organisation updateOrganisation(OrganisationDTO organisationDTO) {
 
-        organisationRepo.save(Organisation.builder()
+
+        return organisationRepo.save(Organisation.builder()
                 .organisationName(organisationDTO.getOrganisationName())
                 .build());
 
-        return HttpStatus.OK;
+
     }
     public OrganisationDTO findOrganisation(Long id) {
 
