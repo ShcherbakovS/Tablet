@@ -1,7 +1,9 @@
 package com.cpstablet.tablet.controller;
 
 import com.cpstablet.tablet.DTO.DefectiveActDTO;
+import com.cpstablet.tablet.entity.Photo;
 import com.cpstablet.tablet.service.DefectiveActService;
+import com.cpstablet.tablet.service.FileService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
@@ -9,7 +11,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -20,7 +24,9 @@ public class DefectiveActController {
     @Qualifier("myMapper")
     public ObjectMapper myMapper;
 
-    DefectiveActService defActService;
+    private final DefectiveActService defActService;
+    private final FileService fileService;
+
 
     @PostMapping("/createDefAct")
     public ResponseEntity<String> createDefectiveAct (@RequestBody String jsonString) throws JsonProcessingException {
@@ -33,6 +39,19 @@ public class DefectiveActController {
     @GetMapping("/getAllDefActs/{codeCCS}")
     public ResponseEntity<List<DefectiveActDTO>> getAllDefectiveActs(@PathVariable("codeCCS") String codeCCS) {
         return new ResponseEntity<>(defActService.getDefectiveActs(codeCCS), HttpStatus.OK);
+    }
+    @PostMapping("/uploadPhotos/{commentId}")
+    public HttpStatus downloadPhotos(@RequestParam("photo") MultipartFile multipartFile,
+                                     @PathVariable("commentId") Long id) {
+
+        try {
+            fileService.uploadPhotos(multipartFile, id);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return HttpStatus.UNSUPPORTED_MEDIA_TYPE;
+
+        }
+        return HttpStatus.CREATED;
     }
 
     @GetMapping("/getDefActById/{id}")

@@ -24,17 +24,14 @@ public class OrganisationService {
     public Organisation createOrganisation(OrganisationDTO organisationDTO) {
 
         return organisationRepo.save(Organisation.builder()
-                        .organisationName(organisationDTO.getOrganisationName())
+                        .organisationName(organisationDTO.getOrganisationName().toUpperCase())
                 .build());
-
-
     }
 
     public Organisation updateOrganisation(OrganisationDTO organisationDTO) {
 
-
         return organisationRepo.save(Organisation.builder()
-                .organisationName(organisationDTO.getOrganisationName())
+                .organisationName(organisationDTO.getOrganisationName().toUpperCase())
                 .build());
 
 

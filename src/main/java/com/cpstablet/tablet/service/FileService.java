@@ -170,6 +170,8 @@ public class FileService {
 
         String path = request.getRequestURI();
 
+        System.out.println(path + "\nПуть запроса!!!!!");
+
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
         Thumbnails.of(file.getInputStream())
@@ -181,9 +183,12 @@ public class FileService {
                 .toOutputStream(baos);
 
         if(path.contains("comments")) {
-            photoRepo.save(Photo.builder().fileName(file.getName()).contentType(file.getContentType())
-                    .size((long) baos.size()).bytes(baos.toByteArray()).commentId(id).build());
-        } else {
+            System.out.println("Замечание");
+//            photoRepo.save(Photo.builder().fileName(file.getName()).contentType(file.getContentType())
+//                    .size((long) baos.size()).bytes(baos.toByteArray()).commentId(id).build());
+        }
+        if (path.contains("defectiveActs")){
+            System.out.println("Как будто бы дефект");
 //            TODO: сохранение в зависимости от места вызова метода для дефектов и замечаний
 //            defectiveActRepo.save(defectiveActRepo.findById(id).get().getPhotos().add(Photo.builder().fileName(file.getName()).contentType(file.getContentType())
 //                    .size((long) baos.size()).bytes(baos.toByteArray()).commentId(id).build()));

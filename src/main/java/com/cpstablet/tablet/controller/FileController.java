@@ -2,10 +2,13 @@ package com.cpstablet.tablet.controller;
 
 import com.cpstablet.tablet.entity.Photo;
 import com.cpstablet.tablet.service.FileService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 
@@ -13,7 +16,6 @@ import java.io.IOException;
 @RequestMapping("/files")
 @AllArgsConstructor
 // TODO: переписать логику в контроллеры систем, уточнить корректность
-// исполнения логики в данных контроллерах
 public class FileController {
 
     private final FileService fileService;
@@ -39,6 +41,7 @@ public class FileController {
     @PostMapping("/uploadPhotos/{commentId}")
     public HttpStatus downloadPhotos(@RequestParam("photo") MultipartFile multipartFile,
             @PathVariable("commentId") Long id) {
+
         try {
             fileService.uploadPhotos(multipartFile, id);
         } catch (IOException e) {

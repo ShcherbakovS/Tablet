@@ -18,6 +18,9 @@ import java.util.List;
 @AllArgsConstructor
 public class AdminToolsController {
 
+    // TODO: очереди RabbitMQ для всех эндпоинтов
+    // TODO: кэширование данных, целесобразность (справочники, проверить списки)
+
     private final UserService userService;
     private final AdminService adminService;
 
@@ -33,7 +36,6 @@ public class AdminToolsController {
         System.out.println(userId);
         return userService.deleteByUserId(userId);
     }
-    //TODO заявка на присвоение роли
     @PostMapping("/set_user_role")
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity setUserRole(@RequestParam("id") Long userId,
@@ -41,7 +43,6 @@ public class AdminToolsController {
         System.out.println(role);
         return userService.setUserRole(userId, role);
     }
-    //TODO заявка на доступ к объекту
     @PostMapping("/set_objects")
     @PreAuthorize("hasAuthority('ADMIN')")
     public HttpStatus setObjects(@RequestParam("id") Long id,
@@ -54,7 +55,6 @@ public class AdminToolsController {
 
         return null;
     }
-
     @GetMapping("/getUsers")
     @PreAuthorize("hasAuthority('ADMIN')")
     public List<UserDTO> getUsers() {

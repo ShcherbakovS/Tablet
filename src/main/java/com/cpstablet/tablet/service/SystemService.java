@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class SystemService {
 
-    static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.mm.yyyy");
+//    static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.mm.yyyy");
     @Value("${check.emptyValue}")
     static String checkValue;
     private final SystemRepo systemRepo;
@@ -63,8 +63,21 @@ public class SystemService {
         toUpdate.setIIPlanDate(systemDTO.getIIPlanDate());
         toUpdate.setIIFactDate(systemDTO.getIIFactDate());
 
-        toUpdate.setKOPlanDate(systemDTO.getKOPlanDate());
-        toUpdate.setKOFactDate(systemDTO.getKOFactDate());
+        if(!systemDTO.getKOPlanDate().equals(" ")) {
+            systemRepo.getAllByCCSNumber(toUpdate.getCCSNumber()).stream()
+                    .filter(sys-> sys.getPNRSystemKO().equals(toUpdate.getPNRSystemKO()))
+                    .forEach(s-> {s.setKOPlanDate(systemDTO.getKOPlanDate());
+                s.setKOPlanDate(systemDTO.getKOPlanDate());
+                systemRepo.save(s);
+            });
+        } else if (!toUpdate.getKOPlanDate().equals(" ") && systemDTO.getKOPlanDate().equals(" ")) {
+            systemRepo.getAllByCCSNumber(toUpdate.getCCSNumber()).stream()
+                    .filter(sys-> sys.getPNRSystemKO().equals(toUpdate.getPNRSystemKO()))
+                    .forEach(s-> {s.setKOPlanDate(systemDTO.getKOPlanDate());
+                s.setKOPlanDate(systemDTO.getKOPlanDate());
+                systemRepo.save(s);
+            });
+        }
 
 
         if(toUpdate.getPNRSystemStatus().contains(" КО") && !systemDTO.getPNRSystemStatus().contains(" КО")) {
@@ -72,9 +85,7 @@ public class SystemService {
                 s.setKOFactDate(systemDTO.getKOFactDate());
                 s.setKOPlanDate(systemDTO.getKOPlanDate());
                 s.setPNRSystemStatus(getSystemStatus(s));
-
                 systemRepo.save(s);
-
             });
 
         } else if (systemDTO.getPNRSystemStatus().contains(" КО")) {
@@ -90,7 +101,6 @@ public class SystemService {
         }
 
         systemRepo.save(toUpdate);
-
         checkStatus(id);
 
     }

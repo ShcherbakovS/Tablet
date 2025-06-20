@@ -33,26 +33,30 @@ public class OrganisationController {
 
            return new ResponseEntity<>(organisationService.createOrganisation(organisationInfo), HttpStatus.OK) ;
 
-
     }
     @PutMapping("/update")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN','USER')")
 
     public ResponseEntity updateOrganisationInfo(@RequestBody OrganisationDTO organisationInfo) {
             organisationService.updateOrganisation(organisationInfo);
-
-
         return ResponseEntity.ok().build();
     }
-    @GetMapping("/getAll")
+    @GetMapping("/getById/{id}")
     @PreAuthorize("hasAnyAuthority('ADMIN','USER')")
+
+    public ResponseEntity<OrganisationDTO> getById(@PathVariable Long id) {
+        return new ResponseEntity<>(organisationService.findOrganisation(id), HttpStatus.OK);
+    }
+
+    @GetMapping("/getAll")
     public List<OrganisationDTO> getAll() {
 
         return organisationService.findAll();
     }
-    @DeleteMapping("/delete")
+    @DeleteMapping("/delete/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public HttpStatus deleteOrganisation(Long id) {
+    public HttpStatus deleteOrganisation(@PathVariable("id") Long id) {
+
         organisationService.deleteOrganisation(id);
 
         return HttpStatus.OK;

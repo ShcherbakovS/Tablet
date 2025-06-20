@@ -1,6 +1,5 @@
 package com.cpstablet.tablet.DTO;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 @Data
@@ -10,7 +9,6 @@ import lombok.*;
 
 public class OrganisationDTO {
 
-    @JsonIgnore
     private Long id;
 
     private String organisationName;
