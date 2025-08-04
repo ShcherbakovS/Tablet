@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -40,20 +41,6 @@ public class DefectiveActController {
     public ResponseEntity<List<DefectiveActDTO>> getAllDefectiveActs(@PathVariable("codeCCS") String codeCCS) {
         return new ResponseEntity<>(defActService.getDefectiveActs(codeCCS), HttpStatus.OK);
     }
-    @PostMapping("/uploadPhotos/{commentId}")
-    public HttpStatus downloadPhotos(@RequestParam("photo") MultipartFile multipartFile,
-                                     @PathVariable("commentId") Long id) {
-
-        try {
-            fileService.uploadPhotos(multipartFile, id);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return HttpStatus.UNSUPPORTED_MEDIA_TYPE;
-
-        }
-        return HttpStatus.CREATED;
-    }
-
     @GetMapping("/getDefActById/{id}")
     public ResponseEntity<DefectiveActDTO> getCommentById(@PathVariable("id") Long id) {
         return new ResponseEntity<>(defActService.findCommentByCommentId(id), HttpStatus.OK);
@@ -73,6 +60,25 @@ public class DefectiveActController {
 
         return defActService.deleteDefectiveActById(id);
 
+    }
+    @PostMapping("/addPhoto/{defActId}")
+    public ResponseEntity<Photo> addPhotoToDefAct(@PathVariable("defActId") Long defActId, @RequestParam("photo") MultipartFile photo) throws IOException {
+        Photo result = fileService.addPhotoToDefectiveAct(defActId, photo);
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/getPhoto/{defActId}")
+    public ResponseEntity<byte[]> getDefActPhoto(@PathVariable("defActId") Long defActId) {
+        byte[] imageData = fileService.getPhotoFromDefectiveAct(defActId);
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_JPEG)
+                .body(imageData);
+    }
+
+    @DeleteMapping("/removePhoto/{defActId}")
+    public ResponseEntity<Void> removeCommentPhoto(@PathVariable("defActId")  Long defActId) {
+        fileService.removePhotoFromDefectiveAct(defActId);
+        return ResponseEntity.noContent().build();
     }
 
 }

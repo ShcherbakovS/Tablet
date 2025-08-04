@@ -20,6 +20,5 @@ public class Photo {
     private String contentType;
     private Long size;
     private byte[] bytes;
-    private Long commentId;
 
 }

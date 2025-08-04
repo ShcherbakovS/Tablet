@@ -7,6 +7,7 @@ import com.cpstablet.tablet.repository.UserRepo;
 import com.cpstablet.tablet.service.ApplicationService;
 import com.cpstablet.tablet.service.UserService;
 import com.cpstablet.tablet.service.mail.MailService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -114,7 +116,7 @@ public class UserServiceImpl implements UserService {
                 customerSupervisor(capital.getCustomerSupervisor()).
                 locationRegion(capital.getLocationRegion()).
                 objectType(capital.getObjectType())
-                .build()).collect(Collectors.toList());
+                .build()).sorted(Comparator.comparing(CapitalCSDTO::getCapitalCSName)).collect(Collectors.toList());
     }
 
     @Override
@@ -132,6 +134,16 @@ public class UserServiceImpl implements UserService {
     public List<UserDTO> getAllUsers() {
 
         return userRepo.findAll().stream().map(user-> createUserDTOFromUserEntity(user)
+        ).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<UserDTO> getUsersByCCS(String ccsCode) {
+
+        CapitalCS capital = capitalCSRepo.findByCodeCCS(ccsCode).orElseThrow(()-> new EntityNotFoundException("При запросе списка пользователей с достуом к объекту " + ccsCode
+        + " объект не был найден"));
+
+        return userRepo.findAll().stream().filter(user-> user.getAllowedObjects().contains(capital)).map(user-> createUserDTOFromUserEntity(user)
         ).collect(Collectors.toList());
     }
 

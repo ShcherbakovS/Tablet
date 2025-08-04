@@ -29,9 +29,9 @@ public class Comment {
     @Column(name = "comment_status") // статус замечания
     private String commentStatus;
     @Column(name = "executor")
-    private String executor;
+    private String executor; // Организация исполнитель
     @Column(name = "user_name")
-    private String userName;
+    private String userName; // ФИО лица выдавшего замечание
     @Column(name = "start_date") // Дата выдачи замечания
     private String startDate;
     @Column(name = "end_date_plan") // плановая дата устранения
@@ -44,5 +44,7 @@ public class Comment {
     private String commentExplanation;
     @Column(name = "code_ccs") // номер объекта
     private String codeCCS;
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    Photo photo;
 
 }

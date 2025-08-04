@@ -42,6 +42,8 @@ public class JwtService {
                 .subject(user.getUsername())
                 .claim("role", user.getRole().name())
                 .claim("userId", user.getId())
+                .claim("fullName", user.getUserInfo().getFullName())
+                .claim("organisation", user.getUserInfo().getOrganisation())
                 // (текущая дата)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 // (текущая дата + 10 часов)

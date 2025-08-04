@@ -148,6 +148,7 @@ public class CommonInfoService {
                stream().filter(e -> e.getPNRSystemKO().equals(subObject.getNumberKO())).map( e -> SystemCommonInfDTO.builder().
                        PNRSystemId(e.getPNRSystemId()).
                        numberII(e.getPNRSystemII()).
+                       systemRD(e.getPNRSystemRD()).
                        systemName(e.getPNRSystemName()).
                        CIWExecutor(e.getCIWExecutor()).
                        CWExecutor(e.getCWExecutor()).
@@ -177,6 +178,7 @@ public class CommonInfoService {
                 PNRSystemId(PNRSystem.getPNRSystemId()).
                 CCSNumber(PNRSystem.getCCSNumber()).
                 numberII(PNRSystem.getPNRSystemII()).
+                systemRD(PNRSystem.getPNRSystemRD()).
                 systemName(PNRSystem.getPNRSystemName()).
                 comments(commentRepo.findCommentsByCodeCCS(PNRSystem.getCCSNumber()).
                         stream().

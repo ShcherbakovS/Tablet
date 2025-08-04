@@ -29,4 +29,5 @@ public interface SystemRepo extends JpaRepository<PNRSystem, Long> {
 
 
      void deleteAllBySubObject(SubObject subObject);
+
 }

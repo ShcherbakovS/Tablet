@@ -30,5 +30,10 @@ public class ExcelFormController {
 
         return new ResponseEntity<>(excelContent, headers, HttpStatus.OK);
     }
+    @GetMapping("/getJournal/{CCSCode}")
+    public ResponseEntity getJournal(@PathVariable("CCSCode") String CCSCode) {
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
 
 }

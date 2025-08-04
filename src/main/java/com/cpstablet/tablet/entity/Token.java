@@ -17,9 +17,9 @@ public class Token {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
-    @Column(name = "accessToken")
+    @Column(name = "accessToken", length = 1000)
     private String accessToken;
-    @Column(name = "refreshToken")
+    @Column(name = "refreshToken", length = 1000)
     private String refreshToken;
     @Column(name = "loggedOut")
     private boolean loggedOut;

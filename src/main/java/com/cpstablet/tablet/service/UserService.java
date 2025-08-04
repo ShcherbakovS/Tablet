@@ -24,6 +24,7 @@ public interface UserService extends UserDetailsService {
     void setObjectToAllowed(Long id, String ccsCode);
 
     List <UserDTO> getAllUsers();
+    List<UserDTO> getUsersByCCS(String ccsCode);
 
     List<ApplicationResponseDTO> getApplications(Long id);
 

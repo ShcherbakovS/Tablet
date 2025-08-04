@@ -24,7 +24,6 @@ public class CalendarDay {
     private Long personnelFact;
     @Column(name ="date")
     private LocalDate date;
-
     @ManyToOne
     @JoinColumn(name = "capitalcs_id")
     private CapitalCS capitalCS;

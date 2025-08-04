@@ -39,6 +39,8 @@ public class CapitalCS {
     private Long commentCounter;
     // счетчик дефектов
     private Long defectiveActCounter;
+    // счетчик записей журнала ПНР
+    private Long journalEntryCounter;
 
     @OneToOne(fetch = FetchType.LAZY,
             cascade = CascadeType.ALL,
@@ -49,5 +51,10 @@ public class CapitalCS {
                 cascade = CascadeType.ALL,
                 mappedBy = "capitalCS")
     private List<CalendarDay> calendarDays;
+
+    @OneToMany(fetch = FetchType.LAZY,
+                cascade = CascadeType.ALL,
+                mappedBy = "capitalCS")
+    private List<Journal> journalList;
 
 }

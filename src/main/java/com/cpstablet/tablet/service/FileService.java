@@ -1,13 +1,10 @@
 package com.cpstablet.tablet.service;
 
-import com.cpstablet.tablet.entity.PNRSystem;
-import com.cpstablet.tablet.entity.Photo;
-import com.cpstablet.tablet.entity.SubObject;
-import com.cpstablet.tablet.repository.DefectiveActRepo;
-import com.cpstablet.tablet.repository.PhotoRepo;
-import com.cpstablet.tablet.repository.SubObjectRepo;
-import com.cpstablet.tablet.repository.SystemRepo;
-import jakarta.servlet.http.HttpServletRequest;
+import com.cpstablet.tablet.entity.*;
+import com.cpstablet.tablet.entity.Comment;
+import com.cpstablet.tablet.repository.*;
+import jakarta.persistence.EntityNotFoundException;
+
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import net.coobird.thumbnailator.Thumbnails;
@@ -16,15 +13,10 @@ import org.apache.poi.openxml4j.util.ZipSecureFile;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellReference;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.http.HttpRequest;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,16 +25,95 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 @AllArgsConstructor
 public class FileService {
     private final SubObjectRepo subObjectRepo;
     private final SystemRepo systemRepo;
-    private final PhotoRepo photoRepo;
-    private final SystemService systemService;
-
+    private final CommentRepo commentRepo;
     private final DefectiveActRepo defectiveActRepo;
-
+    private final SystemService systemService;
     private final SubObjectService subObjectService;
+
+    public Photo addPhotoToComment(Long id, MultipartFile file) throws IOException {
+
+        Comment comment = commentRepo.findCommentByCommentId(id);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+        Thumbnails.of(file.getInputStream())
+                .size(800, 600)
+                .outputFormat("jpg")
+                .outputQuality(0.7)
+                .useExifOrientation(false)
+                .keepAspectRatio(true)
+                .toOutputStream(baos);
+
+        Photo photo = Photo.builder().fileName(file.getName()).contentType(file.getContentType())
+                .size((long) baos.size()).bytes(baos.toByteArray()).build();
+
+        System.out.println(photo.getContentType() + " Расширение файла");
+
+        System.out.println(photo.getSize() + " Размер фото");
+
+        comment.setPhoto(photo);
+        commentRepo.save(comment);
+        return comment.getPhoto();
+    }
+
+    public void removePhotoFromComment(Long id) {
+
+        Comment comment = commentRepo.findByCommentId(id).orElseThrow(() -> new EntityNotFoundException());
+
+        comment.setPhoto(null);
+        commentRepo.save(comment);
+    }
+    public byte[] getPhotoFromComment(Long id) {
+        Comment comment = commentRepo.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Замечание не найдено"));
+        if(comment.getPhoto() != null){
+            throw  new RuntimeException("В замечании нет фото");
+        }
+            return comment.getPhoto().getBytes();
+
+
+    }
+
+    public Photo addPhotoToDefectiveAct(Long id, MultipartFile photo) throws IOException {
+
+        DefectiveAct defAct = defectiveActRepo.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Дефектный акт не найден"));
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+        Thumbnails.of(photo.getInputStream())
+                .size(800, 600)
+                .outputFormat("jpg")
+                .outputQuality(0.7)
+                .useExifOrientation(false)
+                .keepAspectRatio(true)
+                .toOutputStream(baos);
+
+        defAct.setPhoto(Photo.builder().fileName(photo.getName()).contentType(photo.getContentType())
+                .size((long) baos.size()).bytes(baos.toByteArray()).build());
+        defectiveActRepo.save(defAct);
+        return defAct.getPhoto();
+    }
+
+    public byte[] getPhotoFromDefectiveAct(Long id) {
+        DefectiveAct defAct = defectiveActRepo.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Дефектный акт не найден"));
+
+        return defAct.getPhoto().getBytes();
+    }
+
+    public void removePhotoFromDefectiveAct(Long id) {
+        DefectiveAct defAct = defectiveActRepo.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Дефектный акт не найден"));
+
+        defAct.setPhoto(null);
+        defectiveActRepo.save(defAct);
+    }
 
     // загрузка структуры ОКС (подобъекты, системы)
     public void uploadStructure(MultipartFile file, String CCSCode) throws IOException {
@@ -71,7 +142,6 @@ public class FileService {
                 // Удаляем SubObject, это автоматически удалит связанные PNRSystem
                 // благодаря cascade = CascadeType.ALL и orphanRemoval = true
                 subObjectRepo.deleteAll(subObjects);
-
 
             }
             System.out.println(sheet.getLastRowNum() + " индекс последней строки");
@@ -138,16 +208,15 @@ public class FileService {
 
             system.setPNRSystemStatus(systemService.getSystemStatus(system));
 
-
             PNRSystem savedSystem = systemRepo.save(system);
 
             subObjectTo.getPNRSystems().add(savedSystem);
             subObjectRepo.save(subObjectTo);
 
-            if(savedSystem.getPNRSystemStatus().contains(" КО ")) {
+            if (savedSystem.getPNRSystemStatus().contains(" КО ")) {
                 systemRepo.getAllByCCSNumber(savedSystem.getCCSNumber()).stream()
-                        .filter(sub-> sub.getPNRSystemKO().equals(savedSystem.getPNRSystemKO()))
-                        .forEach(s-> {
+                        .filter(sub -> sub.getPNRSystemKO().equals(savedSystem.getPNRSystemKO()))
+                        .forEach(s -> {
                             s.setKOPlanDate(savedSystem.getKOPlanDate());
                             s.setKOFactDate(savedSystem.getKOFactDate());
                             s.setPNRSystemStatus(savedSystem.getPNRSystemStatus());
@@ -162,66 +231,11 @@ public class FileService {
         return null;
     }
 
-    public void uploadPhotos(MultipartFile file, Long id) throws IOException {
-
-        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-
-        HttpServletRequest request = attributes.getRequest();
-
-        String path = request.getRequestURI();
-
-        System.out.println(path + "\nПуть запроса!!!!!");
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
-        Thumbnails.of(file.getInputStream())
-                .size(800, 600)
-                .outputFormat("jpg")
-                .outputQuality(0.7)
-                .useExifOrientation(false)
-                .keepAspectRatio(true)
-                .toOutputStream(baos);
-
-        if(path.contains("comments")) {
-            System.out.println("Замечание");
-//            photoRepo.save(Photo.builder().fileName(file.getName()).contentType(file.getContentType())
-//                    .size((long) baos.size()).bytes(baos.toByteArray()).commentId(id).build());
-        }
-        if (path.contains("defectiveActs")){
-            System.out.println("Как будто бы дефект");
-//            TODO: сохранение в зависимости от места вызова метода для дефектов и замечаний
-//            defectiveActRepo.save(defectiveActRepo.findById(id).get().getPhotos().add(Photo.builder().fileName(file.getName()).contentType(file.getContentType())
-//                    .size((long) baos.size()).bytes(baos.toByteArray()).commentId(id).build()));
-        }
-
-    }
-
-    public Photo getPhotosByCommentId(Long id) {
-
-        Photo toSend = photoRepo.getPhotoByCommentId(id);
-
-        System.out.println(toSend.getSize());
-
-        // return ResponseEntity.ok().
-        // header("fileName").contentType(MediaType.IMAGE_JPEG).
-        // contentLength(photo.getSize()).body(
-        // new InputStreamResource(new ByteArrayInputStream(photo.getBytes()))
-        // );
-        return toSend;
-    }
-
-    public HttpStatus deletePhoto(Long id) {
-
-        photoRepo.deleteById(id);
-
-        return HttpStatus.OK;
-
-    }
-
     private boolean checkDocument(Row checkRow) {
 
         List<String> strings = List.of("Поз. по ГП", "Объекты по ГП", "Системы", "Шифр РД", "Номер акта ИИ",
-                "Номер акта КО", "План в ПНР", "Факт в ПНР", "План ИИ", "Факт ИИ", "План КО", "Факт КО", "Исполнитель СМР", "Исполнитель ПНР");
+                "Номер акта КО", "План в ПНР", "Факт в ПНР", "План ИИ", "Факт ИИ", "План КО", "Факт КО",
+                "Исполнитель СМР", "Исполнитель ПНР");
 
         List<String> strings2 = List.of(
                 checkRow.getCell(0).getStringCellValue().replaceAll("[\\r\\n]", ""),
@@ -239,7 +253,6 @@ public class FileService {
                 checkRow.getCell(12).getStringCellValue().replaceAll("[\\r\\n]", ""),
                 checkRow.getCell(13).getStringCellValue().replaceAll("[\\r\\n]", ""));
 
-
         if (!strings.equals(strings2)) {
 
             return false;
@@ -251,25 +264,28 @@ public class FileService {
 
         DataFormatter formatter = new DataFormatter();
 
-       if(cell == null) {
-           return " ";
-       }
+        if (cell == null) {
+            return " ";
+        }
 
         if (cell.getCellType().equals(CellType.FORMULA)) {
             if (cell.getCellFormula() == null) {
                 return " ";
             }
             String result;
+
             SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
-                result = dateFormat.format(cell.getDateCellValue());
-                return result;
-            } else if (cell.getCellType().equals(CellType.STRING)) {
+            result = dateFormat.format(cell.getDateCellValue());
+            return result;
+
+        } else if (cell.getCellType().equals(CellType.STRING)) {
             if (cell.getStringCellValue() == null) {
                 return " ";
             }
-                System.out.println(cell.getStringCellValue() + " ЗАПИСЬ СТРОКА");
-                return cell.getStringCellValue();
-            }  else if (cell.getCellType() == CellType.NUMERIC && DateUtil.isCellDateFormatted(cell)) {
+            System.out.println(cell.getStringCellValue() + " ЗАПИСЬ СТРОКА");
+
+            return cell.getStringCellValue();
+        } else if (cell.getCellType().equals(CellType.NUMERIC) && DateUtil.isCellDateFormatted(cell)) {
 
             if (cell.getNumericCellValue() == 0) {
                 return " ";
@@ -278,11 +294,13 @@ public class FileService {
             java.util.Date date = cell.getDateCellValue();
             SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy");
             String dateStr = sdf.format(date);
-            return dateStr ;
-            } else if(cell.getCellType().equals(CellType.NUMERIC)){
+            return dateStr;
+
+        } else if (cell.getCellType().equals(CellType.NUMERIC)) {
             return formatter.formatCellValue(cell);
         }
         return " ";
     }
-}
 
+
+}

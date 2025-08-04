@@ -31,6 +31,7 @@ public class OrganisationService {
     public Organisation updateOrganisation(OrganisationDTO organisationDTO) {
 
         return organisationRepo.save(Organisation.builder()
+                .id(organisationDTO.getId())
                 .organisationName(organisationDTO.getOrganisationName().toUpperCase())
                 .build());
 

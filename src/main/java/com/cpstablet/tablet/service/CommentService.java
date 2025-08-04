@@ -1,8 +1,13 @@
 package com.cpstablet.tablet.service;
 
 import com.cpstablet.tablet.DTO.CommentDTO;
+import com.cpstablet.tablet.entity.CapitalCS;
 import com.cpstablet.tablet.entity.Comment;
+import com.cpstablet.tablet.entity.PNRSystem;
+import com.cpstablet.tablet.repository.CapitalCSRepo;
 import com.cpstablet.tablet.repository.CommentRepo;
+import com.cpstablet.tablet.repository.SystemRepo;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -16,6 +21,9 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class CommentService {
 
+    private final SystemRepo systemRepo;
+
+    private final CapitalCSRepo capitalCSRepo;
     static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
 
@@ -23,8 +31,10 @@ public class CommentService {
 
     public Comment create(CommentDTO comDTO) {
 
-        LocalDate startDate = LocalDate.parse(comDTO.getStartDate(), formatter);
-        System.out.println(startDate);
+        PNRSystem pnrSystem = systemRepo.getAllByCCSNumber(comDTO.getCodeCCS()).stream()
+                .filter(sys-> sys.getPNRSystemII().equals(comDTO.getIiNumber()))
+                .filter(sys-> sys.getPNRSystemName().equals(comDTO.getSystemName())).findFirst().orElseThrow();
+
 
 
         Long commentCounter = commentRepo.findCommentsByCodeCCS(comDTO.getCodeCCS()).stream().count();
@@ -36,7 +46,7 @@ public class CommentService {
                 systemName(comDTO.getSystemName()).
                 description(comDTO.getDescription()).
                 commentStatus(comDTO.getEndDateFact().equals(" ")? "Не устранено" : "Устранено").
-                executor(comDTO.getExecutor()).
+                executor(pnrSystem.getCIWExecutor()).
                 userName(comDTO.getUserName()).
                 startDate(comDTO.getStartDate()).
                 //TODO: без проверки тупо пишем то что прилетело с фронта

@@ -3,6 +3,7 @@ package com.cpstablet.tablet.service;
 
 import com.cpstablet.tablet.DTO.CapitalCSDTO;
 import com.cpstablet.tablet.DTO.CapitalCSInfoDTO;
+import com.cpstablet.tablet.DTO.OrganisationDTO;
 import com.cpstablet.tablet.entity.CapitalCS;
 import com.cpstablet.tablet.entity.CapitalCSInfo;
 import com.cpstablet.tablet.repository.ApplicationRepo;
@@ -15,6 +16,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,6 +31,10 @@ public class CapitalCSService {
 
     public HttpStatus create(CapitalCSDTO capitalDTO) {
 
+        if(capitalDTO.getCodeCCS() == null || capitalDTO.getCodeCCS().equals("")) {
+            throw new RuntimeException("Создание нового ОКС: пустой код ОКС");
+        }
+
          capitalCSRepo.save(CapitalCS.builder().
                     capitalCSName(capitalDTO.getCapitalCSName()).
                     codeCCS(capitalDTO.getCodeCCS()).
@@ -42,6 +48,7 @@ public class CapitalCSService {
                     CIWSupervisor(capitalDTO.getCIWSupervisor()).
                     commentCounter(1L).
                     defectiveActCounter(1L).
+                    journalEntryCounter(1L).
                     capitalCSInfo(new CapitalCSInfo()).
                     build());
 
@@ -62,6 +69,7 @@ public class CapitalCSService {
     public List<CapitalCSDTO> findAll() {
 
         return capitalCSRepo.findAll().stream()
+                .sorted(Comparator.comparing(CapitalCS::getCapitalCSName))
                 .map(capitalCS -> createDTO(capitalCS)).
                 collect(Collectors.toList());
     }
@@ -110,7 +118,7 @@ public class CapitalCSService {
 
         List<CapitalCSDTO> userCapitals = userRepo.findById(userId)
                 .orElseThrow(()-> new UsernameNotFoundException("Пользователь с ID " + userId +" не найден"))
-                .getAllowedObjects().stream().map(capitalCS -> createDTO(capitalCS)).toList();
+                .getAllowedObjects().stream().sorted(Comparator.comparing(CapitalCS::getCapitalCSName)).map(capitalCS -> createDTO(capitalCS)).toList();
 
         List<CapitalCSDTO> filteredCapitals = findAll();
 

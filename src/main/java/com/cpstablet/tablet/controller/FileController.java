@@ -38,31 +38,5 @@ public class FileController {
         return new ResponseEntity<>("Структура загружена успешно", HttpStatus.OK);
     }
 
-    @PostMapping("/uploadPhotos/{commentId}")
-    public HttpStatus downloadPhotos(@RequestParam("photo") MultipartFile multipartFile,
-            @PathVariable("commentId") Long id) {
-
-        try {
-            fileService.uploadPhotos(multipartFile, id);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return HttpStatus.UNSUPPORTED_MEDIA_TYPE;
-
-        }
-        return HttpStatus.CREATED;
-    }
-
-    @GetMapping("/downloadPhoto/{id}")
-    public Photo getPhotosByCommentId(@PathVariable("id") Long id) {
-
-        return fileService.getPhotosByCommentId(id);
-
-    }
-
-    @DeleteMapping("/deletePhotoById/{id}")
-    public HttpStatus deletePhotoById(@PathVariable("id") Long id) {
-        System.out.println();
-        return fileService.deletePhoto(id);
-    }
 
 }

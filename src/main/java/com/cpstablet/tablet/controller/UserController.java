@@ -1,10 +1,6 @@
 package com.cpstablet.tablet.controller;
 
-
-import com.cpstablet.tablet.DTO.ApplicationRequestDTO;
-import com.cpstablet.tablet.DTO.ApplicationResponseDTO;
-import com.cpstablet.tablet.DTO.CapitalCSDTO;
-import com.cpstablet.tablet.DTO.UserInfoDTO;
+import com.cpstablet.tablet.DTO.*;
 import com.cpstablet.tablet.service.ApplicationService;
 import com.cpstablet.tablet.service.UserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -18,7 +14,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
 
 @RestController
 @RequestMapping("/user")
@@ -73,4 +68,15 @@ public class UserController {
     public ApplicationResponseDTO getApplication(@PathVariable("id") Long id) {
         return appService.findById(id);
     }
+    @GetMapping("/getUsers")
+    @PreAuthorize("hasAnyAuthority('USER')")
+    public List<UserDTO> getUsers() {
+        return userService.getAllUsers();
+    }
+    @GetMapping("/getUsers/{ccsCode}")
+    @PreAuthorize("hasAnyAuthority('USER')")
+    public List<UserDTO> getUsersByCCS(@PathVariable("ccsCode") String ccsCode ) {
+        return userService.getUsersByCCS(ccsCode );
+    }
+
 }

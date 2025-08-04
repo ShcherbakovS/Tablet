@@ -43,8 +43,8 @@ public class SecurityConfig {
                     CorsConfiguration config = new CorsConfiguration();
                     config.setAllowedOrigins(Arrays.asList(
                             "http://localhost:8081",
-                            "https://enchanting-witch-pr--z403ifzop8.expo.app",
-                            "https://xn----7sbpwlcifkq8d.xn--p1ai:8443"));
+                            "https://tablet-pnr--t7558h4f4g.expo.app",
+                            "https://xn----7sbpwlcifkq8d.xn--p1ai:8443", "https://tablet-pnr--1zpw4k2wyh.expo.app"));
                     config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
                     config.setAllowedHeaders(Arrays.asList("*"));
                     return config;
@@ -56,7 +56,7 @@ public class SecurityConfig {
             auth.requestMatchers("/admin/**").hasAuthority("ADMIN");
             auth.requestMatchers("/user/**").hasAuthority("USER");
             auth.requestMatchers("/authUser/**", "/comments/**", "/capitals/**", "/systems/**", "/commons/**",
-                    "/files/**", "/subObjects/**","/defectiveActs/**", "/organisations/**").hasAnyAuthority("USER", "ADMIN");
+                    "/files/**", "/subObjects/**","/defectiveActs/**", "/organisations/**", "/journal/**").hasAnyAuthority("USER", "ADMIN");
             auth.anyRequest().authenticated();
 
         })

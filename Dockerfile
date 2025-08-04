@@ -8,4 +8,6 @@ FROM eclipse-temurin:17-jdk-jammy
 WORKDIR /opt/app
 EXPOSE 8080
 COPY --from=builder /opt/app/target/*.jar /opt/app/*.jar
+
+COPY ./src/main/resources/Samples/ /opt/app/resources/Samples/
 ENTRYPOINT ["java", "-jar", "/opt/app/*.jar"]

@@ -56,7 +56,7 @@ public class AdminToolsController {
         return null;
     }
     @GetMapping("/getUsers")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN','USER')")
     public List<UserDTO> getUsers() {
         return userService.getAllUsers();
     }

@@ -18,7 +18,10 @@ public class CommentDTO {
     private String description;
     private String commentStatus;
     private String executor;
+    // TODO передача через id пользователя
     private String userName;
+    // TODO организация- сущность подтягивать по пользователю, запрашивать пользователя по id  при передаче на бэк
+    private String organisation;
     private String startDate;
     private String endDatePlan;
     private String endDateFact;

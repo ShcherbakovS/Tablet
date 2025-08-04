@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class PhotoDTO {
-
+    private Long id;
     private String fileName;
     private String contentType;
     private Long size;

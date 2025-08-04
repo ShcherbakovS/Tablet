@@ -2,14 +2,10 @@ package com.cpstablet.tablet.service;
 
 import com.cpstablet.tablet.DTO.PNRSystemDTO;
 import com.cpstablet.tablet.entity.PNRSystem;
-import com.cpstablet.tablet.entity.SubObject;
-import com.cpstablet.tablet.repository.SubObjectRepo;
 import com.cpstablet.tablet.repository.SystemRepo;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -17,7 +13,6 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class SystemService {
 
-//    static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.mm.yyyy");
     @Value("${check.emptyValue}")
     static String checkValue;
     private final SystemRepo systemRepo;

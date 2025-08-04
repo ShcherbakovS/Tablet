@@ -23,14 +23,36 @@ public class Scheduler {
     public void commentChecker() {
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+        LocalDate currentDate = LocalDate.now();
 
-        List<Comment> commentsToCheck = commentRepo.findAll().stream().
-                filter(e-> !e.getEndDateFact().equals(" ")).
-                filter(e-> LocalDate.parse(e.getEndDatePlan(), formatter).isBefore(LocalDate.now())).
-                collect(Collectors.toList());
+        try {
+            List<Comment> commentsToCheck = commentRepo.findAll().stream()
+                    .filter(comment -> isValidEndDateFact(comment.getEndDateFact()))
+                    .filter(comment -> isValidAndOverduePlanDate(comment.getEndDatePlan(), formatter, currentDate))
+                    .collect(Collectors.toList());
 
-        commentsToCheck.stream().forEach(e-> e.setCommentStatus("Не устранено с просрочкой"));
+            if (!commentsToCheck.isEmpty()) {
+                commentsToCheck.forEach(comment -> comment.setCommentStatus("Не устранено с просрочкой"));
+                commentRepo.saveAll(commentsToCheck);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Ошибка при проверке статусов замечаний: " + e.getMessage(), e);
+        }
+    }
 
-        commentRepo.saveAll(commentsToCheck);
+    private boolean isValidEndDateFact(String endDateFact) {
+        return endDateFact != null && !endDateFact.trim().isEmpty() && !endDateFact.equals(" ");
+    }
+
+    private boolean isValidAndOverduePlanDate(String endDatePlan, DateTimeFormatter formatter, LocalDate currentDate) {
+        try {
+            if (endDatePlan == null || endDatePlan.trim().isEmpty()) {
+                return false;
+            }
+            LocalDate planDate = LocalDate.parse(endDatePlan, formatter);
+            return planDate.isBefore(currentDate);
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

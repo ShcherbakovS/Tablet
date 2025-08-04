@@ -14,6 +14,7 @@ public class SystemCommonInfDTO {
     private Long PNRSystemId;
     private String CCSNumber;
     private String numberII;
+    private String systemRD;
     private String systemName;
     private Long comments;
     private String status;
