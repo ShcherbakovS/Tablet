@@ -42,6 +42,8 @@ public class DefectiveAct {
 
     @Column(name = "user_name")
     private String userName;
+    @Column(name = "user_organisation")
+    private String userOrganisation; // организация лица выдавшего замечание
 
     @Column(name = "start_date") // Дата выдачи замечания
     private String startDate;

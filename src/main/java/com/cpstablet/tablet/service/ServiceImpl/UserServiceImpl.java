@@ -147,6 +147,7 @@ public class UserServiceImpl implements UserService {
         ).collect(Collectors.toList());
     }
 
+
     @Override
     public List<ApplicationResponseDTO> getApplications(Long id) {
 
@@ -210,6 +211,14 @@ public class UserServiceImpl implements UserService {
         User user = userRepo.findById(id).orElseThrow(()-> new UsernameNotFoundException("Пользователь не найден"));
 
         return createUserDTOFromUserEntity(user);
+    }
+
+    @Override
+    public List<String> getUsersByJournalRecords(String ccsCode) {
+
+        CapitalCS capitalCS = capitalCSRepo.findByCodeCCS(ccsCode).orElseThrow(()-> new EntityNotFoundException("ОКС не найден"));
+
+        return capitalCS.getJournalList().stream().map(journalEntry-> journalEntry.getUser()).collect(Collectors.toList());
     }
 
     private UserDTO createUserDTOFromUserEntity(User user) {

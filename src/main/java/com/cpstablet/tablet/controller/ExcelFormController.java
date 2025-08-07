@@ -32,7 +32,16 @@ public class ExcelFormController {
     }
     @GetMapping("/getJournal/{CCSCode}")
     public ResponseEntity getJournal(@PathVariable("CCSCode") String CCSCode) {
-        return new ResponseEntity<>(HttpStatus.OK);
+        byte[] excelContent = excelFormsService.createJournal(CCSCode);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        headers.setContentDisposition(ContentDisposition.attachment()
+                .filename("report.xlsx")
+                .build());
+        headers.add("Content-Transfer-Encoding", "binary");
+
+        return new ResponseEntity<>(excelContent, headers, HttpStatus.OK);
     }
 
 

@@ -14,9 +14,8 @@ public class CorsConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
 
-        config.addAllowedOrigin("https://tablet-pnr--t7558h4f4g.expo.app");
+        config.addAllowedOrigin("https://tablet-pnr--pvk1lppoww.expo.app");
         config.addAllowedOrigin("https://xn----7sbpwlcifkq8d.xn--p1ai:8443");
-        config.addAllowedOrigin("https://tablet-pnr--1zpw4k2wyh.expo.app");
         config.addAllowedOrigin("http://localhost:8081");
 
         config.addAllowedMethod("GET");

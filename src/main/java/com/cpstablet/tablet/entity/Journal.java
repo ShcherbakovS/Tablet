@@ -23,12 +23,14 @@ public class Journal {
     @Column(name = "username")
     private String user;
 
+    @Column(name = "organisation")
+    private String organisation;
+
     @Column(name = "subObject")
     private String subObject;
 
     @Column(name = "system")
     private String system;
-
     @ManyToOne
     @JoinColumn(name = "capitalcs_id")
     private CapitalCS capitalCS;

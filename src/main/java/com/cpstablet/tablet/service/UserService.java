@@ -34,4 +34,7 @@ public interface UserService extends UserDetailsService {
 
     UserDTO getUserById(Long id);
 
+    List<String> getUsersByJournalRecords(String ccsCode);
+
+
 }

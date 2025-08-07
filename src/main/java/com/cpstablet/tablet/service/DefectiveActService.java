@@ -3,8 +3,11 @@ package com.cpstablet.tablet.service;
 import com.cpstablet.tablet.DTO.DefectiveActDTO;
 import com.cpstablet.tablet.entity.CapitalCS;
 import com.cpstablet.tablet.entity.DefectiveAct;
+import com.cpstablet.tablet.entity.User;
 import com.cpstablet.tablet.repository.CapitalCSRepo;
 import com.cpstablet.tablet.repository.DefectiveActRepo;
+import com.cpstablet.tablet.repository.UserRepo;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -21,6 +24,8 @@ public class DefectiveActService {
 
     private final CapitalCSRepo capitalCSRepo;
 
+    private final UserRepo userRepo;
+
     public DefectiveAct create(DefectiveActDTO defActDTO) {
 
 //        LocalDate startDate = LocalDate.parse(defActDTO.getStartDate(), formatter);
@@ -34,6 +39,9 @@ public class DefectiveActService {
 
         Long defActCounter = capitalCS.getDefectiveActCounter();
 
+        User user = userRepo.findById(Long.valueOf(defActDTO.getUserName()))
+                .orElseThrow(()-> new EntityNotFoundException("При попытке создания замечания, пользователь не найден"));
+
 
         DefectiveAct defAct = DefectiveAct.builder()
                 .codeCCS(defActDTO.getCodeCCS())
@@ -45,6 +53,8 @@ public class DefectiveActService {
                 .description(defActDTO.getDescription())
                 .endDatePlan(defActDTO.getEndDatePlan())
                 .endDateFact(defActDTO.getEndDateFact())
+                .userName(user.getUserInfo().getFullName())
+                .userOrganisation(user.getUserInfo().getOrganisation())
                 .iiNumber(defActDTO.getIiNumber())
                 .startDate(defActDTO.getStartDate())
                 .serialNumber(defActCounter + 1)

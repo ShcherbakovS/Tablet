@@ -43,8 +43,8 @@ public class SecurityConfig {
                     CorsConfiguration config = new CorsConfiguration();
                     config.setAllowedOrigins(Arrays.asList(
                             "http://localhost:8081",
-                            "https://tablet-pnr--t7558h4f4g.expo.app",
-                            "https://xn----7sbpwlcifkq8d.xn--p1ai:8443", "https://tablet-pnr--1zpw4k2wyh.expo.app"));
+                            "https://tablet-pnr--pvk1lppoww.expo.app",
+                            "https://xn----7sbpwlcifkq8d.xn--p1ai:8443"));
                     config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
                     config.setAllowedHeaders(Arrays.asList("*"));
                     return config;

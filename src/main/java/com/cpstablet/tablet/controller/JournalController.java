@@ -1,7 +1,9 @@
 package com.cpstablet.tablet.controller;
 
 import com.cpstablet.tablet.DTO.JournalDTO;
+import com.cpstablet.tablet.records.EntryList;
 import com.cpstablet.tablet.service.JournalService;
+import com.cpstablet.tablet.service.UserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
@@ -11,7 +13,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.util.List;
 
 @RestController
 @RequestMapping(("/journal"))
@@ -22,6 +23,8 @@ public class JournalController {
     private final ObjectMapper myMapper;
 
     private final JournalService journalService;
+
+    private final UserService userService;
 
     @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     @PostMapping("/createEntry")
@@ -45,10 +48,12 @@ public class JournalController {
     public JournalDTO getEntry(@PathVariable("id")Long id) {
         return journalService.getJournalEntry(id);
     }
-    @GetMapping("/getEntryList/{codeCCS}")
-    public List<JournalDTO> getJournalEntryList(@PathVariable String codeCCS) {
 
-        return journalService.getJournal(codeCCS);
+    @GetMapping("/getEntryList/{codeCCS}")
+    public EntryList getJournalEntryList(@PathVariable String codeCCS) {
+
+        return new EntryList(journalService.getJournal(codeCCS), userService.getUsersByJournalRecords(codeCCS));
+
     }
 
     @DeleteMapping("/deleteEntry/{id}")

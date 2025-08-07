@@ -2,6 +2,7 @@ package com.cpstablet.tablet.service;
 import com.cpstablet.tablet.entity.*;
 import com.cpstablet.tablet.entity.Comment;
 import com.cpstablet.tablet.repository.*;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
         private final CapitalCSRepo capitalCSRepo;
         private final DefectiveActRepo defectiveActRepo;
         private final String monitoringPath = "Samples/Monitoring_sample.xlsx";
+        private final String journalPath = "Samples/Journal.xlsx";
         private final SubObjectRepo subObjectRepo;
         CommentRepo commentRepo;
 
@@ -90,26 +92,40 @@ import java.util.stream.Collectors;
 
             List<PNRSystem> systems = new ArrayList<>();
 
-            subObjects.stream().forEach(sub-> sub.getPNRSystems().stream().sorted(Comparator.comparing(PNRSystem::getPNRSystemId)).forEach(system -> systems.add(system)));
+            subObjects.stream().forEach(sub-> sub.getPNRSystems().stream().sorted(Comparator.comparing(PNRSystem::getPNRSystemId))
+                    .forEach(system -> systems.add(system)));
 
             sheet.getRow(15).getCell((CellReference.convertColStringToIndex("A"))).setCellValue("Мониторинг выполнения ПНР на объекте "+
                     capitalCSRepo.findByCodeCCS(subObjects.get(0).getCCSCode()).get().getCapitalCSName());
 
 
-            int startValue = 17;
+            final int[] startValue = {17};
 
-            for (int i = startValue; i < systems.stream().count() + startValue; i++) {
+            for (int i = startValue[0]; i < systems.stream().count() + startValue[0]; i++) {
                 createRow(sheet, i);
             }
 
-            for (var system :  systems) {
+            for(var sub : subObjects) {
 
-                cells(sheet.getRow(startValue),20, style, font);
+                sub.getPNRSystems().forEach(sys-> {
 
-                wrightCellsToWorkSheet(sheet.getRow(startValue), system, style, creationHelper);
+                    cells(sheet.getRow(startValue[0]),20, style, font);
 
-                startValue ++;
+                    wrightCellsToWorkSheet(sheet.getRow(startValue[0]), sys, style, creationHelper);
+
+                    startValue[0]++;
+                });
+
             }
+
+//            for (var system :  systems) {
+//
+//                cells(sheet.getRow(startValue[0]),20, style, font);
+//
+//                wrightCellsToWorkSheet(sheet.getRow(startValue[0]), system, style, creationHelper);
+//
+//                startValue[0]++;
+//            }
             wrightHeader(workbook);
             mergeCells(sheet, 2 );
             mergeCells(sheet, 3 );
@@ -450,4 +466,64 @@ import java.util.stream.Collectors;
                         mergeStart, lastRow, columnIndex, columnIndex));
             }
         }
+        public byte[] createJournal(String capitalCSCode) {
+
+            CapitalCS capitalCS = capitalCSRepo.findByCodeCCS(capitalCSCode)
+                    .orElseThrow(() -> new EntityNotFoundException("При создании журнала не был найден ОКС"));
+
+            try (InputStream journalSample = getClass().getClassLoader().getResourceAsStream(journalPath);
+                 Workbook workbook =WorkbookFactory.create(journalSample))  {
+
+                wrightJournalMainSheetValues(capitalCS, workbook.getSheet("Титул"));
+                wrightJournalCommonInfoSheet(capitalCS, workbook.getSheet("Журнал №"));
+
+
+                try(ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+
+                    workbook.write(outputStream);
+                    return outputStream.toByteArray();
+                }
+
+            } catch (FileNotFoundException e) {
+                throw new RuntimeException(e);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+        }
+        private void wrightJournalMainSheetValues(CapitalCS capitalCS, Sheet sheet) {
+
+
+            sheet.getRow(12).getCell(CellReference.convertColStringToIndex("I")).setCellValue(capitalCS.getCapitalCSName());
+            sheet.getRow(15).getCell(CellReference.convertColStringToIndex("H")).setCellValue("ООО \"Газпром Инвест\"");
+            sheet.getRow(17).getCell(CellReference.convertColStringToIndex("H")).setCellValue(capitalCS.getCWExecutor());
+            sheet.getRow(47).getCell(CellReference.convertColStringToIndex("P"))
+                    .setCellValue(LocalDate.now().getYear() % 100);
+
+        }
+        private void wrightJournalCommonInfoSheet(CapitalCS capitalCS, Sheet sheet) {
+
+            List<PNRSystem> systems = systemRepo.getAllByCCSNumber(capitalCS.getCodeCCS());
+
+            String PNRDate = systems.stream().filter(system -> !system.getPNRPlanDate().equals(""))
+                    .map(system -> system.getPNRPlanDate())
+                    .sorted().findFirst().get();
+
+            String KODate = Collections.max( systems.stream().filter(system -> !system.getKOFactDate().equals("") )
+                    .map(system ->  system.getKOFactDate())
+                    .collect(Collectors.toList()));
+
+
+            sheet.getRow(2).getCell(CellReference.convertColStringToIndex("T")).setCellValue("1");
+            sheet.getRow(4).getCell(CellReference.convertColStringToIndex("N")).setCellValue(capitalCS.getCapitalCSName());
+            sheet.getRow(6).getCell(CellReference.convertColStringToIndex("K")).setCellValue(capitalCS.getLocationRegion());
+            sheet.getRow(7).getCell(CellReference.convertColStringToIndex("B")).setCellValue(capitalCS.getCWExecutor());
+            sheet.getRow(11).getCell(CellReference.convertColStringToIndex("B")).setCellValue(capitalCS.getCWSupervisor());
+            sheet.getRow(14).getCell(CellReference.convertColStringToIndex("G")).setCellValue(PNRDate);
+            sheet.getRow(16).getCell(CellReference.convertColStringToIndex("M")).setCellValue(KODate);
+
+
+
+        }
+
     }

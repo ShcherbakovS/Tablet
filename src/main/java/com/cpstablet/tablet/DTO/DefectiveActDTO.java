@@ -22,6 +22,7 @@ public class DefectiveActDTO {
     private String defectiveActStatus;
     private String executor;
     private String userName;
+    private String userOrganisation; // организация лица выдавшего замечание
     private String startDate;
     private String endDatePlan;
     private String endDateFact;

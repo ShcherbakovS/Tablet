@@ -16,6 +16,8 @@ public class JournalDTO {
 
     private String user;
 
+    private String organisation;
+
     private String subObject;
 
     private String system;

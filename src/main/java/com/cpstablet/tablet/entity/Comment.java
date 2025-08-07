@@ -32,6 +32,8 @@ public class Comment {
     private String executor; // Организация исполнитель
     @Column(name = "user_name")
     private String userName; // ФИО лица выдавшего замечание
+    @Column(name = "user_organisation")
+    private String userOrganisation; // организация лица выдавшего замечание
     @Column(name = "start_date") // Дата выдачи замечания
     private String startDate;
     @Column(name = "end_date_plan") // плановая дата устранения

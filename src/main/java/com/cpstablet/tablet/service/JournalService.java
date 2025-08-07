@@ -12,21 +12,23 @@ import com.cpstablet.tablet.repository.UserRepo;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.apache.poi.xwpf.usermodel.*;
+import org.apache.xmlbeans.XmlCursor;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTBookmark;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTbl;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTblWidth;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.STTblWidth;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -54,7 +56,8 @@ public class JournalService {
 
         Journal journal = Journal.builder()
                 .description(journalDTO.getDescription())
-                .user(user.getUserInfo().getFullName() + " " + user.getUserInfo().getOrganisation())
+                .user(user.getUserInfo().getFullName())
+                .organisation(user.getUserInfo().getOrganisation())
                 .capitalCS(capitalCS)
                 .subObject(journalDTO.getSubObject())
                 .system(journalDTO.getSystem())
@@ -110,6 +113,7 @@ public class JournalService {
                 .subObject(journal.getSubObject())
                 .system(journal.getSystem())
                 .user(journal.getUser())
+                .organisation(journal.getOrganisation() == null? " " : journal.getOrganisation())
                 .date(journal.getDate())
                 .serialNumber(journal.getSerialNumber())
                 .build();
@@ -135,23 +139,28 @@ public class JournalService {
 
         List<PNRSystem> systems = systemRepo.getAllByCCSNumber(codeCSS);
 
-        LocalDate PNRDate = systems.stream().map(system -> LocalDate.parse(system.getPNRFactDate(), formatter))
+        String PNRDate = systems.stream().filter(system -> !system.getPNRPlanDate().equals(""))
+                .map(system -> system.getPNRPlanDate())
                 .sorted().findFirst().get();
 
-        LocalDate KODate = Collections.max( systems.stream().map(system -> LocalDate.parse(system.getPNRFactDate(), formatter))
+        String KODate = Collections.max( systems.stream().filter(system -> !system.getKOFactDate().equals("") )
+                .map(system ->  system.getKOFactDate())
                 .collect(Collectors.toList()));
 
+        List<User> userList = userRepo.findAll().stream().filter(user -> user.getAllowedObjects().contains(capitalCS)).collect(Collectors.toList());
+
+        List<Journal> journalList = capitalCS.getJournalList();
 
 
-        replacements.put("?{capitalCSName}", capitalCS.getCapitalCSName());
-        replacements.put("?{locationRegion}", capitalCS.getLocationRegion());
+        replacements.put("?{capitalCSName}", capitalCS.getCapitalCSName() == null? "" : capitalCS.getCapitalCSName());
+        replacements.put("?{locationRegion}", capitalCS.getLocationRegion() == null? "" : capitalCS.getLocationRegion());
         replacements.put("?{year}", String.valueOf(LocalDate.now().getYear() % 100));
         // рук ПНР
-        replacements.put("${CWSupervisor}", capitalCS.getCWSupervisor());
+        replacements.put("${CWSupervisor}", capitalCS.getCWSupervisor() == null? "" : capitalCS.getCWSupervisor());
         // куратор от зак-ка
-        replacements.put("${customerSupervisor}", capitalCS.getCustomerSupervisor());
-        replacements.put("${PNRDate}", PNRDate.format(formatter));
-        replacements.put("${KODate}", KODate.format(formatter));
+        replacements.put("${customerSupervisor}", capitalCS.getCustomerSupervisor() == null? "" : capitalCS.getCustomerSupervisor());
+        replacements.put("${PNRDate}", PNRDate == null? "" : PNRDate);
+        replacements.put("${KODate}", KODate == null? "" : KODate);
 
         ClassPathResource resource = new ClassPathResource(journalPath);
         try (InputStream templateStream = resource.getInputStream();
@@ -173,7 +182,9 @@ public class JournalService {
                     }
                 }
            }
-            addITRTable(document,"{ITR_TABLE}");
+            addITRTable(document,"{ITR_TABLE}", userList);
+            addSubcontractorTable(document, "{SUBCONTRACTOR}", systems);
+            addJournalTable(document, "{JOURNAL_TABLE}", capitalCS.getJournalList());
 
 
             try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
@@ -183,7 +194,7 @@ public class JournalService {
         }
 
     }
-// Заменатекста по меткам
+// Замена текста по меткам
     private void replaceText(XWPFParagraph paragraph, Map<String, String> replacements) {
 
         String text = paragraph.getText();
@@ -205,50 +216,213 @@ public class JournalService {
             }
         }
     }
-
-
-    private void addITRTable(XWPFDocument document, String placeholder) {
-
-        int paragraphPos = -1;
+    private void addITRTable(XWPFDocument doc, String placeholder, List<User> userList) {
         XWPFParagraph targetParagraph = null;
 
-        List<XWPFParagraph> paragraphs = document.getParagraphs();
-        for (int i = 0; i < paragraphs.size(); i++) {
-            XWPFParagraph p = paragraphs.get(i);
+        List<XWPFParagraph> paragraphs = doc.getParagraphs();
+        for (XWPFParagraph p : paragraphs) {
             if (p.getText().contains(placeholder)) {
-                paragraphPos = i;
                 targetParagraph = p;
                 break;
             }
         }
 
-        if (paragraphPos == -1) {
-            throw new RuntimeException("Плейсхолдер " + placeholder + " не найден в документе!");
+        if (targetParagraph == null) {
+            throw new RuntimeException("Плейсхолдер {ITR_TABLE} не найден!");
         }
 
-        // 3. Удаляем параграф с плейсхолдером
-        document.removeBodyElement(document.getPosOfParagraph(targetParagraph));
+        // 3. Создаем курсор в позиции перед параграфом с плейсхолдером
+        XmlCursor cursor = targetParagraph.getCTP().newCursor();
 
-        // 4. Создаем новую таблицу
-        XWPFTable table = document.createTable(4,3);
+        // 4. Создаем таблицу в этой позиции
+        XWPFTable table = doc.insertNewTbl(cursor);
 
-        // 5. Настраиваем таблицу (3 колонки, заголовок)
-        // Заголовок таблицы
-        XWPFTableRow headerRow = table.getRow(0);
-        headerRow.getCell(0).setText("ФИО и должность");
-        headerRow.addNewTableCell().setText("Дата начала работ");
-        headerRow.addNewTableCell().setText("Дата окончания работ");
+        CTTblWidth tblWidth = table.getCTTbl().addNewTblPr().addNewTblW();
+        tblWidth.setType(STTblWidth.PCT);  // Указываем, что ширина в процентах
+        tblWidth.setW(BigInteger.valueOf(4000));
+        // 5. Настраиваем стиль для всей таблицы
+        String fontFamily = "Arial";
+        int fontSize = 9;
 
-        // 6. Добавляем данные в таблицу (пример с 3 строками)
+        // 6. Настраиваем таблицу (4 колонки)
+        // Добавляем 3 дополнительные колонки (первая создается автоматически)
         for (int i = 0; i < 3; i++) {
-            XWPFTableRow row = table.createRow();
-            row.getCell(0).setText("Инженер " + (i+1));
-            row.getCell(1).setText("01.01.2023");
-            row.getCell(2).setText("31.12.2023");
+            table.getRow(0).addNewTableCell();
         }
 
-        document.setTable(paragraphPos, table);
+        // Заполняем заголовки с установкой стиля
+        XWPFTableRow headerRow = table.getRow(0);
+        for (int i = 0; i < 4; i++) {
+            XWPFParagraph p = headerRow.getCell(i).getParagraphs().get(0);
+            XWPFRun run = p.createRun();
+            run.setFontFamily(fontFamily);
+            run.setFontSize(fontSize);
+        }
 
+        headerRow.getCell(0).setText("Фамилия, имя, отчество, занимаемая должность, участок работы ");
+        headerRow.getCell(1).setText("Дата начала работ на объекте");
+        headerRow.getCell(2).setText("Отметка о получении разрешения на право производства работ или \n" +
+                "о прохождении аттестации \n");
+        headerRow.getCell(3).setText("Дата окончания работ на объекте ");
+
+        // 7. Добавляем данные с установкой стиля
+        for (int i = 0; i < userList.size(); i++) {
+            XWPFTableRow row = table.createRow();
+            for (int j = 0; j < 4; j++) {
+                XWPFParagraph p = row.getCell(j).getParagraphs().get(0);
+                XWPFRun run = p.createRun();
+                run.setFontFamily(fontFamily);
+                run.setFontSize(fontSize);
+            }
+
+            row.getCell(0).setText(userList.get(i).getUserInfo().getFullName() + " " + userList.get(i).getUserInfo().getOrganisation());
+            row.getCell(1).setText(userList.get(i).getUserInfo().getRegistrationDate());
+            row.getCell(2).setText("");
+            row.getCell(3).setText("");
+        }
+
+        // 7. Удаляем оригинальный параграф с плейсхолдером
+        doc.removeBodyElement(doc.getPosOfParagraph(targetParagraph));
     }
+    private void addSubcontractorTable(XWPFDocument doc, String placeholder, List<PNRSystem> systems) {
+
+        XWPFParagraph targetParagraph = null;
+
+        List<String> subcontractors = systems.stream().map(system -> system.getCIWExecutor()).collect(Collectors.toSet())
+                .stream().collect(Collectors.toList());
+
+        // TODO: в метод
+        List<XWPFParagraph> paragraphs = doc.getParagraphs();
+
+        for (XWPFParagraph p : paragraphs) {
+            if (p.getText().contains(placeholder)) {
+                targetParagraph = p;
+                break;
+            }
+        }
+
+        if (targetParagraph == null) {
+            throw new RuntimeException("Плейсхолдер {ITR_TABLE} не найден!");
+        }
+
+        // 3. Создаем курсор в позиции перед параграфом с плейсхолдером
+        XmlCursor cursor = targetParagraph.getCTP().newCursor();
+
+        // 4. Создаем таблицу в этой позиции
+        XWPFTable table = doc.insertNewTbl(cursor);
+
+        CTTblWidth tblWidth = table.getCTTbl().addNewTblPr().addNewTblW();
+        tblWidth.setType(STTblWidth.PCT);  // Указываем, что ширина в процентах
+        tblWidth.setW(BigInteger.valueOf(4000));
+
+        // 5. Настраиваем стиль для всей таблицы
+        String fontFamily = "Arial";
+        int fontSize = 9;
+
+        // Добавляем 3 дополнительные колонки (первая создается автоматически)
+        for (int i = 0; i < 2; i++) {
+            table.getRow(0).addNewTableCell();
+        }
+
+        // Заполняем заголовки с установкой стиля
+        XWPFTableRow headerRow = table.getRow(0);
+        for (int i = 0; i < 2; i++) {
+            XWPFParagraph p = headerRow.getCell(i).getParagraphs().get(0);
+            XWPFRun run = p.createRun();
+            run.setFontFamily(fontFamily);
+            run.setFontSize(fontSize);
+        }
+
+        headerRow.getCell(0).setText("№ п/п ");
+        headerRow.getCell(1).setText("Субподрядчик ");
+        headerRow.getCell(2).setText("Выполняемые работы ");
+
+        // 7. Добавляем данные с установкой стиля
+        for (int i = 0; i < subcontractors.size(); i++) {
+            XWPFTableRow row = table.createRow();
+            for (int j = 0; j < 2; j++) {
+                XWPFParagraph p = row.getCell(j).getParagraphs().get(0);
+                XWPFRun run = p.createRun();
+                run.setFontFamily(fontFamily);
+                run.setFontSize(fontSize);
+            }
+
+            row.getCell(0).setText(String.valueOf(i + 1));
+            row.getCell(1).setText(subcontractors.get(i));
+            row.getCell(2).setText("");
+        }
+
+        // 7. Удаляем оригинальный параграф с плейсхолдером
+        doc.removeBodyElement(doc.getPosOfParagraph(targetParagraph));
+    }
+    private void addJournalTable(XWPFDocument doc, String placeholder, List<Journal> journalList) {
+
+        XWPFParagraph targetParagraph = null;
+
+
+        // TODO: в метод
+        List<XWPFParagraph> paragraphs = doc.getParagraphs();
+
+        for (XWPFParagraph p : paragraphs) {
+            if (p.getText().contains(placeholder)) {
+                targetParagraph = p;
+                break;
+            }
+        }
+
+        if (targetParagraph == null) {
+            throw new RuntimeException("Плейсхолдер {ITR_TABLE} не найден!");
+        }
+
+        // 3. Создаем курсор в позиции перед параграфом с плейсхолдером
+        XmlCursor cursor = targetParagraph.getCTP().newCursor();
+
+        // 4. Создаем таблицу в этой позиции
+        XWPFTable table = doc.insertNewTbl(cursor);
+
+        CTTblWidth tblWidth = table.getCTTbl().addNewTblPr().addNewTblW();
+        tblWidth.setType(STTblWidth.PCT);  // Указываем, что ширина в процентах
+        tblWidth.setW(BigInteger.valueOf(4000));
+
+        // 5. Настраиваем стиль для всей таблицы
+        String fontFamily = "Arial";
+        int fontSize = 9;
+
+        // Добавляем 3 дополнительные колонки (первая создается автоматически)
+        for (int i = 0; i < 1; i++) {
+            table.getRow(0).addNewTableCell();
+        }
+
+        // Заполняем заголовки с установкой стиля
+        XWPFTableRow headerRow = table.getRow(0);
+        for (int i = 0; i < 1; i++) {
+            XWPFParagraph p = headerRow.getCell(i).getParagraphs().get(0);
+            XWPFRun run = p.createRun();
+            run.setFontFamily(fontFamily);
+            run.setFontSize(fontSize);
+        }
+
+        headerRow.getCell(0).setText("Дата ");
+        headerRow.getCell(1).setText("Краткое описание и условия производства работ (со ссылкой, при необходимости, на работы, выполняемые субподрядными организациями), должность, инициалы и подпись ответственного лица ");
+
+        // 7. Добавляем данные с установкой стиля
+        for (int i = 0; i < journalList.size(); i++) {
+            XWPFTableRow row = table.createRow();
+            for (int j = 0; j < 2; j++) {
+                XWPFParagraph p = row.getCell(j).getParagraphs().get(0);
+                XWPFRun run = p.createRun();
+                run.setFontFamily(fontFamily);
+                run.setFontSize(fontSize);
+            }
+
+            row.getCell(0).setText(journalList.get(i).getDate());
+            row.getCell(1).setText(journalList.get(i).getSubObject() +
+                    " " + journalList.get(i).getSystem() + " " + journalList.get(i).getDescription() + " " + journalList.get(i).getUser() + "\n\n");
+        }
+
+        // 7. Удаляем оригинальный параграф с плейсхолдером
+        doc.removeBodyElement(doc.getPosOfParagraph(targetParagraph));
+    }
+
 
 }

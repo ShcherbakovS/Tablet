@@ -1,4 +1,5 @@
 package com.cpstablet.tablet.DTO;
+import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,7 +22,7 @@ public class CommentDTO {
     // TODO передача через id пользователя
     private String userName;
     // TODO организация- сущность подтягивать по пользователю, запрашивать пользователя по id  при передаче на бэк
-    private String organisation;
+    private String userOrganisation; // организация лица выдавшего замечание
     private String startDate;
     private String endDatePlan;
     private String endDateFact;

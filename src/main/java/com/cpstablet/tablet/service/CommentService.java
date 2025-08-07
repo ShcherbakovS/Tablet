@@ -1,12 +1,15 @@
 package com.cpstablet.tablet.service;
 
 import com.cpstablet.tablet.DTO.CommentDTO;
+import com.cpstablet.tablet.DTO.UserDTO;
 import com.cpstablet.tablet.entity.CapitalCS;
 import com.cpstablet.tablet.entity.Comment;
 import com.cpstablet.tablet.entity.PNRSystem;
+import com.cpstablet.tablet.entity.User;
 import com.cpstablet.tablet.repository.CapitalCSRepo;
 import com.cpstablet.tablet.repository.CommentRepo;
 import com.cpstablet.tablet.repository.SystemRepo;
+import com.cpstablet.tablet.repository.UserRepo;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -29,15 +32,21 @@ public class CommentService {
 
     private final CommentRepo commentRepo;
 
+    private final UserService userService;
+
+    private final UserRepo userRepo;
+
     public Comment create(CommentDTO comDTO) {
 
         PNRSystem pnrSystem = systemRepo.getAllByCCSNumber(comDTO.getCodeCCS()).stream()
                 .filter(sys-> sys.getPNRSystemII().equals(comDTO.getIiNumber()))
                 .filter(sys-> sys.getPNRSystemName().equals(comDTO.getSystemName())).findFirst().orElseThrow();
 
-
+        User user = userRepo.findById(Long.valueOf(comDTO.getUserName()))
+                .orElseThrow(()-> new EntityNotFoundException("При попытке создания замечания, пользователь не найден"));
 
         Long commentCounter = commentRepo.findCommentsByCodeCCS(comDTO.getCodeCCS()).stream().count();
+
 
         return commentRepo.save(Comment.builder().
                 serialNumber(commentCounter + 1 ).
@@ -47,9 +56,9 @@ public class CommentService {
                 description(comDTO.getDescription()).
                 commentStatus(comDTO.getEndDateFact().equals(" ")? "Не устранено" : "Устранено").
                 executor(pnrSystem.getCIWExecutor()).
-                userName(comDTO.getUserName()).
+                userName(user.getUserInfo().getFullName()).
+                userOrganisation(user.getUserInfo().getOrganisation()).
                 startDate(comDTO.getStartDate()).
-                //TODO: без проверки тупо пишем то что прилетело с фронта
                 endDatePlan(comDTO.getEndDatePlan()).
 
                 endDateFact((comDTO.getEndDateFact().equals(" "))? " " : comDTO.getEndDateFact()).

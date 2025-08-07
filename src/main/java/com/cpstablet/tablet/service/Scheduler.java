@@ -27,7 +27,8 @@ public class Scheduler {
 
         try {
             List<Comment> commentsToCheck = commentRepo.findAll().stream()
-                    .filter(comment -> isValidEndDateFact(comment.getEndDateFact()))
+                    .filter(comment -> comment.getEndDateFact().equals(" "))
+                    .filter(comment -> !comment.getEndDatePlan().equals(" "))
                     .filter(comment -> isValidAndOverduePlanDate(comment.getEndDatePlan(), formatter, currentDate))
                     .collect(Collectors.toList());
 
